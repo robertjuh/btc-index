@@ -1,0 +1,51 @@
+
+
+
+
+// maak een nieuw venster/tabje voor "Strategies & backtesting"
+Selecteer scherm in sidebar
+
+
+
+
+
+
+//theming:
+https://material.angular.io/guide/theming#themes
+https://material.angular.io/guide/theming-your-components
+
+
+If you started with 10000 dollar (x), and you invested 5% (Y) every time that the fear index went below 20 (Z)
+Your PnL today would have been % (Q)
+
+If you started with 10000 dollar (x), and you invested 5% (Y) every time that the fear index went below 20 (Z)
+and sold 
+Your PnL today would have been % (Q)
+
+
+
+// Een lijntje met fng level (2e dataset)
+// Kijken of chartjs minder punten op de X as kan tekenen, zodat ze niet diagonaal hoeven zoals bij
+coingecko app
+
+// fng moving average?
+
+// RSI: https://www.youtube.com/watch?v=G03vE4ZVrNk (requires tulip indicators en cg api voor prijs, omdat ik volgens mij alleen close nodig heb)
+// stoch?
+
+
+// Great buy / good buy / good sell etc op kaart laten plotten aan de hand van .... ???
+
+
+
+
+//Van feargread heb ik er soms 1 minder, dus je doet je foreach op je feargreed en matcht die met de coin data
+
+// Refactor waarbij je 1 map maakt met daarin:
+dataObj: DataObject = {
+	fngValueName: "greed",
+	date: new Date,
+	btcPrice: 40000,
+	fngValue: 75
+
+}

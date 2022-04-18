@@ -1,0 +1,19 @@
+//:host {
+  .main-chart-container {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    margin: 20px;
+  }
+
+  .chart-frame {
+    border: 2px solid black;
+    height: 100%;
+  }
+
+  #map {
+    height: 100%;
+  }
+//}

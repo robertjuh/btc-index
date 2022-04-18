@@ -1,0 +1,27 @@
+:host {
+  .checkbox-container {
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+    width: 200px;
+    position: relative;
+    top: -35px;
+  }
+
+  .textbox-text {
+    color: #101010;
+    margin: 0px;
+  }
+
+  .reset-button {
+    position: relative;
+    left: 100px;
+    top: 55px;
+    background: #10101036;
+    z-index: 1;
+  }
+
+  ::ng-deep .mat-checkbox-background {
+    background-color: #101010 !important;
+  }
+}

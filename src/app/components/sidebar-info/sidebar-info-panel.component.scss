@@ -1,0 +1,77 @@
+@import "./src/app/style/variables/_responsiveness.scss";
+@import "src/app/style/variables/colors";
+@import "src/app/style/mixins/mixins.mixins";
+
+:host {
+  .main-info-box-container {
+    // background: #e9e9e9bf;
+    position: absolute;
+    width: 100%;
+    z-index: 1;
+
+    mat-form-field {
+      width: 100%;
+      background: #ffffff29;
+    }
+
+    .customer-information-container {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      border-bottom: 1px solid  #8b8b8b66;
+      margin-bottom: 10px;
+
+      .customer-information-column {
+        width: 50%;
+        padding: 10px;
+        &:not(:last-child) {
+          border-right: 1px solid #8b8b8b66;
+        }
+        &.aantal-fietsen {
+          width: 10px;
+        }
+      }
+
+      .info-icon-row {
+        display: flex;
+        flex-direction: row;
+
+        fa-icon {
+          padding-right: 5px;
+        }
+      }
+    }
+
+    .row-title-header {
+      display: flex;
+      flex-direction: column;
+      h1 {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        margin-bottom: 0px;
+        justify-content: center;
+        border-bottom: 2px solid #8b8b8b66;
+      }
+    }
+
+    /*.info-box {
+      width: 200px;
+      background: white;
+      padding: 20px;
+      margin: 20px;
+      border: 1px solid black;
+      border-radius: 5px;
+    }*/
+
+    mat-expansion-panel-header {
+      &.mat-expanded {
+        background: #eeefe8;
+      }
+    }
+
+    ::ng-deep .mat-expansion-panel-body {
+      padding: 20px 20px 10px 20px;
+    }
+  }
+}

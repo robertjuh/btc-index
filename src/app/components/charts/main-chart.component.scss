@@ -1,0 +1,54 @@
+@import "src/app/style/mixins/mixins.mixins";
+@import "../../../app/style/variables/_responsiveness.scss";
+@import "../../../app/style/variables/colors";
+
+:host {
+  margin-top: 20px;
+  align-self: center;
+
+  .main-chart-container {
+    background: $dark-background;
+    // background: white;
+    padding: 20px;
+    border-radius: 10px;
+
+    .chart-toolbar {
+      display: flex;
+      justify-content: center;
+      flex-flow: wrap;
+      button {
+        margin: 2px;
+        @include dark-button-style;
+
+/*        border-color: #6613d0;
+        margin-left: 2px;
+        margin-right: 2px;
+        margin-bottom: 2px;
+        background: #490d95;
+        color: whitesmoke;*/
+      }
+    }
+  }
+
+  .chart-frame {
+    display: block;
+    min-width: calc(100vw - 100px);
+    width: calc(100vw - 100px);
+    /*
+    width: 700px;*/
+    height: 700px;
+
+  }
+
+  @media screen and (max-width: $xs-width) {
+    .main-chart-container {
+      padding: 0px;
+    }
+
+    .chart-frame {
+      height: 400px;
+      width: calc(100vw - 20px);
+    }
+  }
+
+}

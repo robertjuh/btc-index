@@ -1,0 +1,29 @@
+@import '../variables/responsiveness';
+
+@mixin screen-xs {
+  @media only screen and (max-width: $xs-width - 1) {
+    @content;
+  }
+}
+
+@mixin screen-gt-xs {
+  @media only screen and (min-width: $xs-width) {
+    @content;
+  }
+}
+
+@mixin dark-button-style {
+  border-color: #6613d0;
+  background: #490d9578;
+  color: whitesmoke;
+
+  &.cdk-focused {
+    background: #490d95;
+  }
+}
+
+@mixin dark-background-gradient {
+  background: #101010;
+  background: rgb(73,13,149);
+  background:linear-gradient(211deg, #490d95e6 0%, #101010 50%, #490d95e6 100%);
+}
