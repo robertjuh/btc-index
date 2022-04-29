@@ -1,5 +1,5 @@
-import {AfterViewInit, Component, HostListener, Input, OnInit} from "@angular/core";
-import {Chart, ChartOptions, registerables, ScriptableLineSegmentContext} from "chart.js";
+import {AfterViewInit, Component, HostListener, Input, OnDestroy, OnInit} from "@angular/core";
+import {Chart, ChartOptions, DatasetChartOptions, registerables, ScriptableLineSegmentContext} from "chart.js";
 import {CoingeckoApiData} from "../../models/interface/coingecko-api-data.interface";
 import {TimeStampAndNumber} from "../../models/interface/timestamp-and-number.interface";
 import {StateDataService} from "../../services/state-data.service";
@@ -8,8 +8,7 @@ import {addDays, getColorForIndex, getColorForSegment} from "../../services/util
 import {StartAndEndDate} from "../../models/interface/start-and-end-date.interface";
 import {Title} from "@angular/platform-browser";
 import {Subscription} from "rxjs";
-import {FearAndGreedName} from "../../models/enum/fear-and-greed-name.enum";
-import {Time} from "@angular/common";
+import {CompleteDataObject} from "../../models/interface/complete-data-object.interface";
 
 Chart.register(...registerables);
 
@@ -35,14 +34,7 @@ Chart.register(...registerables);
   `,
   styleUrls: ["./main-chart.component.scss"]
 })
-export class MainChartComponent implements AfterViewInit {
-  @Input()
-  public set btcPriceData(priceData: CoingeckoApiData) {
-    if (priceData?.prices) {
-      this._btcPriceData = priceData.prices;
-    }
-  }
-
+export class MainChartComponent implements AfterViewInit, OnDestroy {
   public canvas: HTMLCanvasElement;
   public ctx: CanvasRenderingContext2D;
 
@@ -111,10 +103,11 @@ export class MainChartComponent implements AfterViewInit {
             tooltipItems.forEach((tooltipItem) => {
               return sum += tooltipItem.parsed.y;
             });
-            return "BTC: $" + Math.floor(this.dataService.btcPriceDataPrices[tooltipItems[0].dataIndex][1]);
+            return "BTC: $" + Math.floor(this.dataService.loadedCompleteData[tooltipItems[0].dataIndex].btcPrice);
           },
           label: (tooltipItem): string => {
-            return "Fear/Greed index value: " + this.dataService.loadedFearIndexes[tooltipItem.dataIndex].value;
+            // return "Fear/Greed index value: " + this.dataService.loadedFearIndexes[tooltipItem.dataIndex].value;
+            return "Fear/Greed index value: " + this.dataService.loadedCompleteData[tooltipItem.dataIndex].fngValue;
           },
           /* label(tooltipItem: TooltipItem<any>): string | string[] {
              return "LABELTJE";
@@ -135,62 +128,95 @@ export class MainChartComponent implements AfterViewInit {
     public apiConnectorService: ApiConnectorService,
     private _titleService: Title
   ) {
-    this.dataService.everyThingLoaded.subscribe((value: { coinPrices: CoingeckoApiData; fearGreed: any; }) => {
+    console.log("Constructor");
+
+    /*if (!this.dataService.everyThingLoaded.observers?.length) {
+      this.dataService.everyThingLoaded.subscribe((value: { coinPrices: CoingeckoApiData; fearGreed: any; }) => {
 
 
-      this.dataService.loadedCoinPrices = value.coinPrices.prices;
-      this.dataService.loadedFearIndexes = [...value.fearGreed.data];
-      this.dataService.loadedFearIndexes.reverse();
+        this.dataService.loadedCoinPrices = value.coinPrices.prices;
+        this.dataService.loadedFearIndexes = [...value.fearGreed.data];
+        this.dataService.loadedFearIndexes.reverse();
+        this.dataService.loadedCompleteData = [];
+
+        // this.dataService.loadedCompleteData = this.dataService.loadedCoinPrices.map((x: TimeStampAndNumber) => return {
+        /!*      this.dataService.loadedCompleteData = this.dataService.loadedCoinPrices.map(({timeStamp, numberValue}, index) => (
+                 {
+                  fngValueName: "test",
+                  fngValue: FearAndGreedName.Neutral,
+                  btcPrice: numberValue,
+                  date: new Date(timeStamp)
+                }
+              ));*!/
 
 
-      // this.dataService.loadedCompleteData = this.dataService.loadedCoinPrices.map((x: TimeStampAndNumber) => return {
-      /*      this.dataService.loadedCompleteData = this.dataService.loadedCoinPrices.map(({timeStamp, numberValue}, index) => (
-               {
-                fngValueName: "test",
-                fngValue: FearAndGreedName.Neutral,
-                btcPrice: numberValue,
-                date: new Date(timeStamp)
-              }
-            ));*/
-
-      // TODO alle loadedFearIndexes en loadedCoinPrices vervangen voor loadedCompleteData objs
-
-      this.dataService.loadedCoinPrices.forEach((coinPriceItem: TimeStampAndNumber, index: number) => {
-        this.dataService.loadedCompleteData.push({
-          fngValueName: this.dataService.loadedFearIndexes[index].value_classification,
-          fngValue: this.dataService.loadedFearIndexes[index].value,
-          btcPrice: coinPriceItem[1],
-          date: new Date(coinPriceItem[0])
+        this.dataService.loadedCoinPrices.forEach((coinPriceItem: TimeStampAndNumber, index: number) => {
+          this.dataService.loadedCompleteData.push({
+            fngValueName: this.dataService.loadedFearIndexes[index].value_classification,
+            fngValue: this.dataService.loadedFearIndexes[index].value,
+            btcPrice: coinPriceItem[1],
+            date: new Date(coinPriceItem[0])
+          });
         });
+
+        console.log("ja alles compleet", this.dataService.loadedCompleteData);
+
+        /!*      fngValueName: "test",
+                fngValue: FearAndGreedName.Neutral,
+                btcPrice: 1234,
+                date: new Date()
+
+              };*!/
+
+
+        // this.dataService.loadedCompleteData ;
+
+        if (this.mainChart) {
+          this._updateChartData();
+        } else {
+          this._createChartComponentWithData();
+        }
+
       });
-
-      console.log("ja alles compleet", this.dataService.loadedCompleteData);
-
-      /*      fngValueName: "test",
-              fngValue: FearAndGreedName.Neutral,
-              btcPrice: 1234,
-              date: new Date()
-
-            };*/
+    }*/
 
 
-      // this.dataService.loadedCompleteData ;
+    /*    if (this.mainChart) {
+          this._updateChartData();
+        } else {
+          this._createChartComponentWithData();
+        }*/
 
-
-      this._createChartComponentWithData();
-    });
   }
 
   ngAfterViewInit(): void {
     this.canvas = document.getElementById("myChart") as HTMLCanvasElement;
     this.ctx = this.canvas.getContext("2d");
 
-    // this.mainChart = new Chart(this.ctx, {
+    this.dataService.everyThingLoadedAndTransformed.subscribe((completeDataObj: CompleteDataObject[]) => {
+      if (this.dataService.loadedCompleteData.length) {
+        if (this.mainChart) {
+          this._updateChartData();
+        } else {
+          this._createChartComponentWithData();
+        }
+      }
+    });
 
-    if (this.dataService.loadedCoinPrices.length && this.dataService.loadedFearIndexes.length) {
-      this._createChartComponentWithData();
+    if (this.dataService.loadedCompleteData.length) {
+      if (this.mainChart) {
+        this._updateChartData();
+      } else {
+        this._createChartComponentWithData();
+      }
     }
 
+
+  }
+
+  ngOnDestroy(): void {
+    // this.mainChart?.destroy();
+    // this.dataService.everyThingLoaded.unsubscribe();
   }
 
   public toggleLogScale(): void {
@@ -227,24 +253,24 @@ export class MainChartComponent implements AfterViewInit {
         backgroundGradient.addColorStop(1, "rgba(0,0,0,0)");*/
 
 
-    this.dataService.loadedCoinPrices.forEach((priceDateDataPoint: TimeStampAndNumber, index: number) => {
-      priceDataSeries.push(Math.floor(priceDateDataPoint[1]));
-      const newDate: Date = new Date(priceDateDataPoint[0]);
+    // this.dataService.loadedCoinPrices.forEach((priceDateDataPoint: TimeStampAndNumber, index: number) => {
+    this.dataService.loadedCompleteData.forEach((completeDataObject: CompleteDataObject, index: number) => {
+      priceDataSeries.push(Math.floor(completeDataObject.btcPrice));
+      const newDate: Date = new Date(completeDataObject.date);
 
-      backgroundColors.push(getColorForIndex(this.dataService.loadedFearIndexes[index].value_classification));
+      // const newDate: Date = new Date(priceDateDataPoint[0]);
+
+      // backgroundColors.push(getColorForIndex(this.dataService.loadedFearIndexes[index].value_classification));
+      backgroundColors.push(getColorForIndex(this.dataService.loadedCompleteData[index].fngValueName));
 
       // labels.push((newDate.getDate()) + " - " + (newDate.getMonth() + 1) + " - " + newDate.getFullYear());
       labels.push((newDate.getDate()) + "-" + (newDate.getMonth() + 1) + "-" + newDate.getFullYear());
       // labels.push(newDate);
     });
 
-    this.mainChart?.destroy();
+    // this.mainChart?.destroy();
 
     this.mainChart = new Chart(this.ctx, {
-      /*
-            plugins: gradient,
-      */
-
       options: this._defaultChartOptions,
       type: "line",
       data: {
@@ -262,9 +288,10 @@ export class MainChartComponent implements AfterViewInit {
           borderColor: "black",
           segment: {
             borderColor: (ctx: ScriptableLineSegmentContext) => {
-              // return skipped(ctx, "rgb(0,0,0,0.2)") || down(ctx, "rgb(192,75,75)");
-              // return getColorForSegment(ctx, priceDataSeries, fearGreedIndexData[ctx.datasetIndex]);
-              return getColorForSegment(ctx, priceDataSeries, this.dataService.loadedFearIndexes[ctx.p1DataIndex]);
+              // return getColorForSegment(ctx, priceDataSeries, this.dataService.loadedFearIndexes[ctx.p1DataIndex].value_classification);
+              return getColorForSegment(this.dataService.loadedCompleteData[ctx.p1DataIndex].fngValueName);
+              /*return !!this.dataService.loadedCompleteData[ctx.p1DataIndex] ? getColorForSegment(ctx, priceDataSeries,
+                this.dataService.loadedCompleteData[ctx.p1DataIndex].fngValueName) : undefined;*/
             },
             // borderDash: ctx => skipped(ctx, [6, 6]),
           },
@@ -283,24 +310,6 @@ export class MainChartComponent implements AfterViewInit {
     this.screenWidth = window.innerWidth;
   }
 
-  public footer = (tooltipItems) => {
-    let sum = 0;
-
-    tooltipItems.forEach((tooltipItem) => {
-      return sum += tooltipItem.parsed.y;
-    });
-    return "Sum: " + sum;
-  };
-
-  public footer2(tooltipItems): any {
-    let sum = 0;
-
-    tooltipItems.forEach((tooltipItem) => {
-      return sum += tooltipItem.parsed.y;
-    });
-    return "Sum: " + sum;
-  }
-
   public handleDayAmountSelection(amountOfDays: number): void {
     const today: Date = new Date();
     const determinedStartDate: Date = addDays(today, -(amountOfDays + 1));
@@ -315,7 +324,7 @@ export class MainChartComponent implements AfterViewInit {
   }
 
   public handleDayAmountSelectionAll(): void {
-    const start: Date = new Date("3-3-2018");
+    const start: Date = new Date("02-01-2018");
     const end: Date = new Date();
 
     const startAndEndDate: StartAndEndDate = {
@@ -337,6 +346,73 @@ export class MainChartComponent implements AfterViewInit {
     };
 
     this.apiConnectorService.loadCollectionWithParams(startAndEndDate);
+  }
+
+  private _updateChartData(): void {
+    console.log("_updateChartData", this.mainChart);
+
+    const priceDataSeries: number[] = [];
+    const labels: any[] = [];
+    const backgroundColors: string[] = [];
+
+    const segments: string[] = [];
+
+
+    const backgroundGradient: CanvasGradient = this.ctx.createLinearGradient(300, 110, 200, 600);
+
+    // deze is mooi op moble
+    backgroundGradient.addColorStop(0, "rgba(73,13,149,0.27)");
+    backgroundGradient.addColorStop(1, "rgba(16,16,16,0.08)");
+
+
+    this.dataService.loadedCompleteData.forEach((completeDataObject: CompleteDataObject, index: number) => {
+      priceDataSeries.push(Math.floor(completeDataObject.btcPrice));
+      const newDate: Date = new Date(completeDataObject.date);
+      backgroundColors.push(getColorForIndex(this.dataService.loadedCompleteData[index].fngValueName));
+
+      labels.push((newDate.getDate()) + "-" + (newDate.getMonth() + 1) + "-" + newDate.getFullYear());
+    });
+
+    /*this.mainChart.config.data.labels = labels;
+    this.mainChart.config.data.datasets[0].data = priceDataSeries;
+    // @ts-ignore
+    this.mainChart.config.data.datasets[0].pointBorderColor = backgroundColors;
+    // @ts-ignore
+    this.mainChart.config.data.datasets[0].pointBackgroundColor = backgroundColors;*/
+    this.mainChart.data = {
+      labels,
+      datasets: [{
+        label: "BTC price",
+
+        // backgroundColor: gradientTest,  // deze werkt goed!
+        backgroundColor: backgroundGradient,  // deze werkt goed!
+        // backgroundColor: backgroundColors,
+        data: priceDataSeries,
+        // data: data2,
+        fill: true,
+        // borderColor: "transparent", // Invisible line :D
+        borderColor: "black",
+        segment: {
+          borderColor: (ctx: ScriptableLineSegmentContext) => {
+            // return getColorForSegment(ctx, priceDataSeries, this.dataService.loadedFearIndexes[ctx.p1DataIndex].value_classification);
+            return getColorForSegment(this.dataService.loadedCompleteData[ctx.p1DataIndex].fngValueName);
+            /*return !!this.dataService.loadedCompleteData[ctx.p1DataIndex] ? getColorForSegment(ctx, priceDataSeries,
+              this.dataService.loadedCompleteData[ctx.p1DataIndex].fngValueName) : undefined;*/
+          },
+          // borderDash: ctx => skipped(ctx, [6, 6]),
+        },
+        tension: 0.3,
+        pointBorderColor: backgroundColors,
+        pointBackgroundColor: backgroundColors,
+        pointHitRadius: 20,
+        pointRadius: 2
+        /*          segment: {
+                    borderColor: this.ctx => fear(this.ctx, value)
+                  }*/
+      }]
+    };
+
+    this.mainChart.update();
   }
 
   private _createXaXis(): void {

@@ -132,8 +132,8 @@ export function skipped(ctx, value): any {
   return ctx.p0.skip || ctx.p1.skip ? value : undefined;
 }
 
-export function getColorForSegment(ctx: ScriptableLineSegmentContext, collection: number[], value: FearGreedDataPoint): any {
-  return getColorForIndex(value.value_classification);
+export function getColorForSegment(value: FearAndGreedName): any {
+  return getColorForIndex(value);
 }
 
 export function getColorForIndex(value: string): any {
@@ -219,4 +219,15 @@ export function addDays(date: Date, days: number): Date {
   const result: Date = new Date(date);
   result.setDate(result.getDate() + days);
   return result;
+}
+
+export function dayCheck(daysArray: Date[]): boolean {
+  for (let i = 1; i < daysArray.length; i++) {
+    const day: Date = new Date(daysArray[i - 1]);
+    day.setDate(day.getDate() + 1);
+    if (new Date(daysArray[i]).getTime() !== day.getTime()) {
+      return false;
+    }
+  }
+  return true;
 }

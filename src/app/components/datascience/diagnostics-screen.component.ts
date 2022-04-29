@@ -17,16 +17,6 @@ import {FearGreedDataPoint} from "../../models/interface/fear-greed-data-point.i
   styleUrls: ["./diagnostics-screen.component.scss"]
 })
 export class DiagnosticsScreenComponent implements AfterViewInit {
-  @Input()
-  public set btcPriceData(priceData: CoingeckoApiData) {
-    if (priceData?.prices) {
-      this._btcPriceData = priceData.prices;
-    }
-  }
-
-  private _btcPriceData: TimeStampAndNumber[];
-
-
   constructor(
     public dataService: StateDataService,
     public apiConnectorService: ApiConnectorService,

@@ -3,9 +3,11 @@
 
 
 // maak een nieuw venster/tabje voor "Strategies & backtesting"
-Selecteer scherm in sidebar
+Selecteer scherm in sidebar, en sidebar dissapear on click
 
 
+// Voor min en max nr's :
+// alles overzetten  naar formgroup
 
 
 
@@ -13,6 +15,9 @@ Selecteer scherm in sidebar
 //theming:
 https://material.angular.io/guide/theming#themes
 https://material.angular.io/guide/theming-your-components
+
+
+
 
 
 If you started with 10000 dollar (x), and you invested 5% (Y) every time that the fear index went below 20 (Z)
@@ -49,3 +54,35 @@ dataObj: DataObject = {
 	fngValue: 75
 
 }
+
+// je heb weer een probleem als je heen en weer gaat (ander tabje)
+// Update aanroepe ofzo?
+
+// verhuis subscribption naar oninit ipv constructor
+
+
+
+- Improve visibility of the chart on mobile screens
+- Implement "sell when greed is above X" option
+- Implement a way for the user to decide another buy strategy than the 10% for each buy day now.
+
+- lijn voor feargreedindex (optional for user)
+- Lijn voor RSI (optional voor user)
+
+
+
+//TODO:
+op den duur wil ik het ook zo maken dat je een X bedrag per week toevoegd ook bijvoorbeeld, in plaats van 1 totaal startbedrag
+
+Ik kan wel gewoon allerlei andere metrics toevoegen, bijvoorbeeld: buy when fng index is below 20 en rsi below 30
+
+Oja je kunt nu basically al zelf kiezen op welk fear niveau je koopt, 16 bijvoorbeeld
+ Maar er moet idd nog een sell komen
+En dan
+ Strong buy op 11 bijvoorbeeld
+ En voor sell
+ Je kan zelf nummers invoeren
+
+
+// Probleem:
+bij feaRGREED heb je 14-17 april niet

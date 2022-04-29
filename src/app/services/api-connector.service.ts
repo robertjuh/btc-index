@@ -17,6 +17,7 @@ import {StateDataService} from "./state-data.service";
 export class ApiConnectorService {
   public coingeckoApiDataLoaded = new Subject<CoingeckoApiData>();
   public fearGreedIndexDataLoaded = new Subject<FearGreedDataPoint[]>();
+  public coingeckoTodayDataLoaded = new Subject<number>();
 
 
   constructor(
@@ -26,6 +27,33 @@ export class ApiConnectorService {
   }
 
   // public fearGreadURL: string = "https://api.alternative.me/fng/?limit=231&date_format=world";
+
+  public loadTodaysPrice(): void {
+    const url: string = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=USD";
+    const requestOptions: any = {
+      method: "GET",
+      redirect: "follow",
+    };
+
+    // TODO make type
+    fetch(
+      url,
+      requestOptions
+    )
+      .then((response) => response.text())
+      .then((result) => {
+        const coingeckoAPIResult: any = JSON.parse(result);
+
+        if (coingeckoAPIResult.bitcoin?.usd) {
+          this.coingeckoTodayDataLoaded.next(coingeckoAPIResult.bitcoin?.usd);
+        }
+
+      })
+      .catch((error) => {
+        console.log("error", error);
+      });
+  }
+
 
   public async loadAllPrices(coinGeckoUrl: string): Promise<void> {
 
@@ -123,7 +151,7 @@ export class ApiConnectorService {
     // const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${unixTimeStart}&to=${unixTimeEnd}`;
     const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${Math.floor(unixTimeStart)}&to=${Math.floor(unixTimeEnd)}`;
     // const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=us`;
-    const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=us`;
+    const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=nl`;
 
 
     forkJoin({

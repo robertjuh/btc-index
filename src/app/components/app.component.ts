@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {AfterViewInit, Component, OnDestroy, OnInit} from "@angular/core";
 import {ApiConnectorService} from "../services/api-connector.service";
 import {StateDataService} from "../services/state-data.service";
 import {MatDialog} from "@angular/material/dialog";
@@ -10,6 +10,8 @@ import {MatOptionSelectionChange} from "@angular/material/core";
 import {StartAndEndDate} from "../models/interface/start-and-end-date.interface";
 import {Title} from "@angular/platform-browser";
 import {Router} from "@angular/router";
+import {FearGreedDataPoint} from "../models/interface/fear-greed-data-point.interface";
+import {FearAndGreedName} from "../models/enum/fear-and-greed-name.enum";
 
 /*<button class="close-button" (click)="drawer.toggle()" mat-raised-button>
 Close
@@ -60,25 +62,9 @@ Close
         </mat-toolbar>
 
 
-        <!--
-                <h1 [textContent]="mainTitleStr" class="main-title"></h1>
-        -->
-        <!--        <button [class.invisibleButton]="drawer.opened" mat-icon-button color="accent" class="menu-burger-button open-menu-button" (click)="drawer.toggle()">
-                  <mat-icon>menu</mat-icon>
-                </button>-->
-
-
-        <!--        <button class="settings-button" (click)="drawer.toggle()" mat-raised-button>
-                  Settings
-                </button>-->
-
-
         <router-outlet></router-outlet>
 
 
-        <!--<main-chart
-          [btcPriceData]="btcPriceData"
-        ></main-chart>-->
         <div class="subtext-container">
           <p class="donation-paragraph">Powered by coingecko and alternative.me</p>
           <p class="donation-paragraph">Donate: 0xCE222EE6b59DdCE73B774AD76C0fc787E2Ea3528</p>
@@ -93,25 +79,21 @@ Close
   `,
   styleUrls: ["./app.component.scss"]
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   public title = "btc-index";
 
   public showContent = false;
 
-  public get btcPriceData(): CoingeckoApiData {
-    return this._dataSvc.btcPriceData;
-  }
-
   public get mainTitleStr(): string {
-    return this._dataSvc.lastFearIndex?.value ? "BTC Fear and greed index: " + this._dataSvc.lastFearIndex.value : "BTC Fear and greed index";
+    return this._dataSvc.lastFearIndex ? "BTC Fear and greed index: " + this._dataSvc.lastFearIndex : "BTC Fear and greed index";
   }
 
   public get currentFearLvl(): string {
-    return this._dataSvc.lastFearIndex?.value;
+    return this._dataSvc.lastFearIndex;
   }
 
   public get currentFearLvlColor(): string {
-    return getColorForIndex(this._dataSvc.lastFearIndex?.value_classification);
+    return getColorForIndex(this._dataSvc.lastFearIndexName);
   }
 
   private _ordersLoadedSub: Subscription;
@@ -127,29 +109,115 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this._ordersLoadedSub = this.apiConnector.coingeckoApiDataLoaded.subscribe((result: CoingeckoApiData) => {
-      this._dataSvc.btcPriceData = result;
-
-      const array: TimeStampAndNumber[] = [];
-
-      result.prices.forEach((priceItem: TimeStampAndNumber) => (
-        array.push({
-          timeStamp: priceItem[0],
-          number: priceItem[1]
-        })
-      ));
-
-      this._dataSvc.btcPriceData.prices = array;
-    });
-
-    /*    this._fearGreatDataIndexLoadedSub = this.apiConnector.fearGreedIndexDataLoaded.subscribe((result: FearGreedDataPoint[]) => {
-          // this._dataSvc.fearGreedIndexData = result;
-          this._dataSvc.loadedFearIndexes = result;
-        });*/
-
     this._loadCollection();
 
     // this._loadTitleIndexNr();
+  }
+
+  ngAfterViewInit(): void {
+    if (!this._dataSvc.everyThingLoaded.observers?.length) {
+      this._dataSvc.everyThingLoaded.subscribe((value: { coinPrices: CoingeckoApiData; fearGreed: any; }) => {
+
+
+        this._dataSvc.loadedCoinPrices = value.coinPrices.prices;
+        this._dataSvc.loadedFearIndexes = [...value.fearGreed.data];
+        this._dataSvc.loadedFearIndexes.reverse();
+        this._dataSvc.loadedCompleteData = [];
+
+
+
+
+
+        let previousDate;
+        this._dataSvc.loadedFearIndexes.forEach((fgObj: FearGreedDataPoint, index: number) => {
+          const date1: Date = new Date(this._dataSvc.loadedFearIndexes[index].timestamp);
+          date1.setHours(0, 0, 0, 0);
+
+          if (previousDate) {
+            if (fgObj.timestamp) {
+
+              // wat je moet doen is de dayCheck functie aanroepen met een array met 2 dates
+              // previousDate en current date.
+              // dan iets van: this._dataSvc.loadedFearIndexes.splice(index - 1, 0, dummyDataObj);*/
+              // probeer ff met lage dataset
+              // 12 april 2018 tot 19 april 2018
+
+              // Check if the next day is aanslutend op de previous
+              // zo niet, blijf toevoegen
+
+            }
+
+          }
+
+          previousDate = new Date(fgObj.timestamp);
+
+
+        });
+
+
+        console.log("voor de modificatie", this._dataSvc.loadedFearIndexes);
+        // Check the feargreed dataset first and insert dummy data in missing datapoints
+        this._dataSvc.loadedCoinPrices.forEach((coinPriceItem: TimeStampAndNumber, index: number) => {
+
+
+          // insert hier wat shit in je loadedFearIndexes
+          /*const dummyDataObj: FearGreedDataPoint = {
+            value: "14",
+            timestamp: date2.toLocaleDateString(),
+            value_classification: FearAndGreedName.NullValue,
+          };
+
+          this._dataSvc.loadedFearIndexes.splice(index, 0, dummyDataObj);*/
+
+        });
+        console.log("na de modificatie", this._dataSvc.loadedFearIndexes);
+
+        this._dataSvc.loadedCoinPrices.forEach((coinPriceItem: TimeStampAndNumber, index: number) => {
+          if (!this._dataSvc.loadedFearIndexes[index]) {
+            console.log("wat gebeurt er?");
+          }
+
+          // coinPriceItem.timeStamp = new Date(coinPriceItem.timeStamp).setTime(new Date(this._dataSvc.loadedFearIndexes[0].timestamp).getTime());
+
+          const date1: Date = new Date(this._dataSvc.loadedFearIndexes[index].timestamp);
+          date1.setHours(0, 0, 0, 0);
+          const date2: Date = new Date(coinPriceItem[0]);
+          date2.setHours(0, 0, 0, 0);
+
+          // console.log("-=-");
+          // console.log(date1);
+          // console.log(date2);
+
+          if (date1.getTime() !== date2.getTime()) {
+            console.log("wtff");
+
+            // Insert filler data when missing feargreedDatapoints
+            /*            this._dataSvc.loadedCompleteData.push({
+                          fngValueName: this._dataSvc.loadedFearIndexes[index].value_classification,
+                          fngValue: this._dataSvc.loadedFearIndexes[index].value,
+                          btcPrice: coinPriceItem[1],
+                          date: new Date(coinPriceItem[0])
+                        });*/
+          } else {
+
+          }
+
+          if (!this._dataSvc.loadedFearIndexes[index]) {
+            console.log("wow", coinPriceItem);
+          }
+          this._dataSvc.loadedCompleteData.push({
+            fngValueName: this._dataSvc.loadedFearIndexes[index].value_classification,
+            fngValue: this._dataSvc.loadedFearIndexes[index].value,
+            btcPrice: coinPriceItem[1],
+            date: new Date(coinPriceItem[0])
+          });
+        });
+
+        console.log("ja alles compleet", this._dataSvc.loadedCompleteData);
+
+        this._dataSvc.everyThingLoadedAndTransformed.next(this._dataSvc.loadedCompleteData);
+      });
+    }
   }
 
   ngOnDestroy(): void {

@@ -4,5 +4,5 @@ export interface FearGreedDataPoint {
   value: string;
   value_classification: FearAndGreedName;
   timestamp: string;
-  time_until_update: string;
+  time_until_update?: string;
 }

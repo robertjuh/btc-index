@@ -19,16 +19,17 @@ import {CommonModule} from "@angular/common";
 import {GoogleMapsModule} from "@angular/google-maps";
 import {HttpClientJsonpModule, HttpClientModule} from "@angular/common/http";
 import {MainChartComponent} from "../components/charts/main-chart.component";
-import {MatFormFieldModule} from "@angular/material/form-field";
-import {MatDatepickerModule } from "@angular/material/datepicker";
-import { MatNativeDateModule } from "@angular/material/core";
-import { MatSelectModule } from "@angular/material/select";
+import { MatFormFieldModule} from "@angular/material/form-field";
+import {MatDatepickerModule} from "@angular/material/datepicker";
+import {MatNativeDateModule} from "@angular/material/core";
+import {MatSelectModule} from "@angular/material/select";
 import {DiagnosticsScreenComponent} from "../components/datascience/diagnostics-screen.component";
 import {MatIconModule} from "@angular/material/icon";
 import {MatToolbarModule} from "@angular/material/toolbar";
 import {MatTabsModule} from "@angular/material/tabs";
 import {StrategyScreenComponent} from "../components/datascience/strategy-screen.component";
 import {MatInputModule} from "@angular/material/input";
+import {ReactiveFormsModule} from "@angular/forms";
 
 @NgModule({
   declarations: [
@@ -37,7 +38,8 @@ import {MatInputModule} from "@angular/material/input";
     SidebarInfoPanelComponent,
     MainChartComponent,
     DiagnosticsScreenComponent,
-    StrategyScreenComponent
+    StrategyScreenComponent,
+    // mdInputContaine
   ],
   imports: [
     BrowserModule,
@@ -68,7 +70,8 @@ import {MatInputModule} from "@angular/material/input";
     FontAwesomeModule,
     MatFormFieldModule,
     MatNativeDateModule,
-    MatDatepickerModule
+    MatDatepickerModule,
+    ReactiveFormsModule
   ],
   providers: [
     StateDataService,

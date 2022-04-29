@@ -3,5 +3,6 @@ export enum FearAndGreedName {
   Fear = "Fear",
   Neutral = "Neutral",
   Greed = "Greed",
-  ExtremeGreed = "Extreme Greed"
+  ExtremeGreed = "Extreme Greed",
+  NullValue = "No data provided"
 }

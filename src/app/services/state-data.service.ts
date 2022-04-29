@@ -5,24 +5,17 @@ import {TimeStampAndNumber} from "../models/interface/timestamp-and-number.inter
 import {FearGreedDataPoint} from "../models/interface/fear-greed-data-point.interface";
 import {Subject} from "rxjs";
 import {CompleteDataObject} from "../models/interface/complete-data-object.interface";
+import {FearAndGreedName} from "../models/enum/fear-and-greed-name.enum";
 
 @Injectable({
   providedIn: "root"
 })
 export class StateDataService {
-  public get btcPriceData(): CoingeckoApiData {
-    return this._btcPriceData;
-  }
-
-  public set btcPriceData(value: CoingeckoApiData) {
-    this._btcPriceData = value;
-    this.btcPriceDataPrices = value.prices;
-  }
-
   // coingecko returns hourly if user chosen less than 90 days
   public amountOfDaysExceedsNinety: boolean = false;
 
   public everyThingLoaded = new Subject<{ coinPrices: any; fearGreed: any; }>();
+  public everyThingLoadedAndTransformed = new Subject<CompleteDataObject[]>();
 
   public btcPriceDataPrices: TimeStampAndNumber[];
 
@@ -31,8 +24,16 @@ export class StateDataService {
 
   public loadedCompleteData: CompleteDataObject[] = [];
 
-  public get lastFearIndex(): FearGreedDataPoint {
-    return this.loadedFearIndexes[0] ? this.loadedFearIndexes[this.loadedFearIndexes.length - 1] : undefined;
+  public get lastFearIndex(): string {
+    if (this.loadedCompleteData[0]) {
+      return this.loadedCompleteData[0].fngValue ? this.loadedCompleteData[this.loadedCompleteData.length - 1].fngValue : undefined;
+    }
+  }
+
+  public get lastFearIndexName(): FearAndGreedName {
+    if (this.loadedCompleteData[0]) {
+      return this.loadedCompleteData[0].fngValueName ? this.loadedCompleteData[this.loadedCompleteData.length - 1].fngValueName : undefined;
+    }
   }
 
   private _btcPriceData: CoingeckoApiData;
