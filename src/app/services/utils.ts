@@ -231,3 +231,8 @@ export function dayCheck(daysArray: Date[]): boolean {
   }
   return true;
 }
+
+export function convertDate(dateString): string {
+  const date: Date = new Date(dateString);
+  return date.getDate()+"-"+(date.getMonth() + 1)+"-"+date.getFullYear();
+}

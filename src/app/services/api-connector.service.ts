@@ -24,6 +24,7 @@ export class ApiConnectorService {
     public http: HttpClient,
     public dataService: StateDataService,
   ) {
+
   }
 
   // public fearGreadURL: string = "https://api.alternative.me/fng/?limit=231&date_format=world";
@@ -91,7 +92,7 @@ export class ApiConnectorService {
       method: "GET",
       redirect: "follow",
       headers: {
-        "Accept": "application/json"
+        Accept: "application/json"
       }
     };
 
@@ -150,8 +151,8 @@ export class ApiConnectorService {
     // Default query
     // const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${unixTimeStart}&to=${unixTimeEnd}`;
     const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${Math.floor(unixTimeStart)}&to=${Math.floor(unixTimeEnd)}`;
-    // const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=us`;
-    const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=nl`;
+    const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=us`;
+    // const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=nl`;
 
 
     forkJoin({

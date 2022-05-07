@@ -5,13 +5,13 @@ import {MatDialog} from "@angular/material/dialog";
 import {Subscription} from "rxjs";
 import {CoingeckoApiData} from "../models/interface/coingecko-api-data.interface";
 import {TimeStampAndNumber} from "../models/interface/timestamp-and-number.interface";
-import {addDays, getColorForIndex} from "../services/utils";
+import {addDays, dayCheck, getColorForIndex} from "../services/utils";
 import {MatOptionSelectionChange} from "@angular/material/core";
 import {StartAndEndDate} from "../models/interface/start-and-end-date.interface";
 import {Title} from "@angular/platform-browser";
 import {Router} from "@angular/router";
-import {FearGreedDataPoint} from "../models/interface/fear-greed-data-point.interface";
 import {FearAndGreedName} from "../models/enum/fear-and-greed-name.enum";
+import {FearGreedDataPoint} from "../models/interface/fear-greed-data-point.interface";
 
 /*<button class="close-button" (click)="drawer.toggle()" mat-raised-button>
 Close
@@ -125,20 +125,83 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         this._dataSvc.loadedCompleteData = [];
 
 
+        let previousDate: Date;
+        let lastKnownFearValue: string;
+        let lastKnownFearValueStr: FearAndGreedName;
+        this._dataSvc.loadedCoinPrices.forEach((fgObj: TimeStampAndNumber, index: number) => {
+          // const englishDateStr: string = this._dataSvc.loadedFearIndexes[index].timestamp;
+          // this._dataSvc.loadedFearIndexes[index].timestamp = convertDate(englishDateStr);
 
 
+          const dateStrArr: string[] = this._dataSvc.loadedFearIndexes[index].timestamp.toString().split("-");
 
-        let previousDate;
-        this._dataSvc.loadedFearIndexes.forEach((fgObj: FearGreedDataPoint, index: number) => {
-          const date1: Date = new Date(this._dataSvc.loadedFearIndexes[index].timestamp);
-          date1.setHours(0, 0, 0, 0);
+          // previousDate = new Date(this._dataSvc.loadedFearIndexes[index].timestamp);
+          // @ts-ignore
+          const today: Date = new Date(this._dataSvc.loadedFearIndexes[index].timestamp.toString().replaceAll("-", "/"));
+          // const today: Date = new Date(parseInt(dateStrArr[2], 10), parseInt(dateStrArr[0], 10), parseInt(dateStrArr[1], 10));
+
+          // const today: Date = new Date(this._dataSvc.loadedFearIndexes[index].timestamp);
+          today.setHours(0, 0, 0, 0);
+
 
           if (previousDate) {
-            if (fgObj.timestamp) {
 
+
+            const isConsecutiveDate: boolean = dayCheck([previousDate, today]);
+
+
+            if (isConsecutiveDate) {
+
+              lastKnownFearValue = this._dataSvc.loadedFearIndexes[index].value;
+              lastKnownFearValueStr = this._dataSvc.loadedFearIndexes[index].value_classification;
               // wat je moet doen is de dayCheck functie aanroepen met een array met 2 dates
               // previousDate en current date.
               // dan iets van: this._dataSvc.loadedFearIndexes.splice(index - 1, 0, dummyDataObj);*/
+              // probeer ff met lage dataset
+              // 12 april 2018 tot 19 april 2018
+
+              // Check if the next day is aanslutend op de previous
+              // zo niet, blijf toevoegen
+
+            } else {
+              const dummyObj: FearGreedDataPoint = {
+                value: lastKnownFearValue,
+                value_classification: lastKnownFearValueStr, // TODO Je kan deze ook neutraal maken ofzo? dat ie dan zwart word
+                // @ts-ignore
+                timestamp: new Date(fgObj[0]).toLocaleDateString("en-us").replaceAll("/", "-")
+              };
+              console.log("-=-=-=-=");
+              console.log("not a consecutive date:", today);
+              console.log("previousdate was:", previousDate);
+              this._dataSvc.loadedFearIndexes.splice(index, 0, dummyObj);
+
+            }
+
+          }
+
+          // previousDate = new Date(fgObj.timestamp);
+
+          // previousDate = new Date(this._dataSvc.loadedFearIndexes[index].timestamp);
+          // @ts-ignore
+          previousDate = new Date(this._dataSvc.loadedFearIndexes[index].timestamp.toString().replaceAll("-", "/"));
+
+          // previousDate = new Date(parseInt(dateStrArr[2], 10), parseInt(dateStrArr[0], 10), parseInt(dateStrArr[1], 10));
+          previousDate.setHours(0, 0, 0, 0);
+        });
+
+
+        /*this._dataSvc.loadedCoinPrices.forEach((fgObj: TimeStampAndNumber, index: number) => {
+          const date1: Date = new Date(this._dataSvc.loadedFearIndexes[index].timestamp);
+          date1.setHours(0, 0, 0, 0);
+          const date2: Date = new Date(this._dataSvc.loadedFearIndexes[index].timestamp);
+          date1.setHours(0, 0, 0, 0);
+
+          if (previousDate) {
+            if (fgObj.timeStamp) {
+
+              // wat je moet doen is de dayCheck functie aanroepen met een array met 2 dates
+              // previousDate en current date.
+              // dan iets van: this._dataSvc.loadedFearIndexes.splice(index - 1, 0, dummyDataObj);*!/
               // probeer ff met lage dataset
               // 12 april 2018 tot 19 april 2018
 
@@ -152,10 +215,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
           previousDate = new Date(fgObj.timestamp);
 
 
-        });
+        });*/
 
 
-        console.log("voor de modificatie", this._dataSvc.loadedFearIndexes);
         // Check the feargreed dataset first and insert dummy data in missing datapoints
         this._dataSvc.loadedCoinPrices.forEach((coinPriceItem: TimeStampAndNumber, index: number) => {
 

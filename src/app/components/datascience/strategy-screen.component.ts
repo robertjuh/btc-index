@@ -29,13 +29,13 @@ import {Subject} from "rxjs";
             Number should be lower than 100 and higher than 1
           </mat-error>
 
-          <!--<mat-label>Sell when FnG is above:</mat-label>
+          <mat-label>Sell when FnG is above:</mat-label>
           <mat-form-field class="example-full-width">
             <input matInput type="number" formControlName="greedSellIndex" [(ngModel)]="greedSellIndex"/>
           </mat-form-field>
           <mat-error *ngIf="errorHandling('greedSellIndex', 'max')">
             Number should be lower than 100 and higher than 1
-          </mat-error>-->
+          </mat-error>
 
 
           <div class="calculate-button">
@@ -150,6 +150,17 @@ export class StrategyScreenComponent implements OnInit, AfterViewInit {
     this.startBudgetLeft = this.startBudget;
 
     this.dataService.loadedCompleteData.forEach((dataPoint: CompleteDataObject) => {
+
+      // Perform a buy
+      if (parseInt(dataPoint.fngValue, 0) <= this.fearBuyIndex) {
+        const amountBoughtInUSD = (0.1 * this.startBudgetLeft);
+        const amountOfBTCBought = amountBoughtInUSD / dataPoint.btcPrice;
+
+        this.totalBTCBought += amountOfBTCBought;
+        this.startBudgetLeft -= amountBoughtInUSD;
+      }
+
+      // Perform a sell
       if (parseInt(dataPoint.fngValue, 0) <= this.fearBuyIndex) {
         const amountBoughtInUSD = (0.1 * this.startBudgetLeft);
         const amountOfBTCBought = amountBoughtInUSD / dataPoint.btcPrice;
@@ -169,6 +180,6 @@ export class StrategyScreenComponent implements OnInit, AfterViewInit {
 
   public errorHandling = (control: string, error: string) => {
     return this.formGroup.controls[control].hasError(error);
-  };
+  }
 
 }

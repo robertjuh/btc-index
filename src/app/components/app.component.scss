@@ -203,8 +203,9 @@
     }
 
     main-chart {
+      width: calc(100vw - 20px);
       // width: calc(100% - 20px);
-      width: 100%;
+      // width: 100%;
       margin-top: 0px !important;
     }
   }

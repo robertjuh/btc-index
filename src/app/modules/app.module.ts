@@ -30,6 +30,7 @@ import {MatTabsModule} from "@angular/material/tabs";
 import {StrategyScreenComponent} from "../components/datascience/strategy-screen.component";
 import {MatInputModule} from "@angular/material/input";
 import {ReactiveFormsModule} from "@angular/forms";
+import {MatButtonToggleModule} from "@angular/material/button-toggle";
 
 @NgModule({
   declarations: [
@@ -41,38 +42,39 @@ import {ReactiveFormsModule} from "@angular/forms";
     StrategyScreenComponent,
     // mdInputContaine
   ],
-  imports: [
-    BrowserModule,
-    CommonModule,
-    GoogleMapsModule,
-    BrowserAnimationsModule,
-    MatDialogModule,
-    MatButtonModule,
-    AppRoutingModule,
-    MatSidenavModule,
-    MatFormFieldModule,
-    MatDatepickerModule,
-    MatInputModule,
-    HttpClientModule,
-    MatCheckboxModule,
-    MatSelectModule,
-    HttpClientJsonpModule,
-    MatIconModule,
-    MatToolbarModule,
-    MatTabsModule,
-    ServiceWorkerModule.register("ngsw-worker.js", {
-      enabled: environment.production,
-      // Register the ServiceWorker as soon as the app is stable
-      // or after 30 seconds (whichever comes first).
-      registrationStrategy: "registerWhenStable:30000"
-    }),
-    MatExpansionModule,
-    FontAwesomeModule,
-    MatFormFieldModule,
-    MatNativeDateModule,
-    MatDatepickerModule,
-    ReactiveFormsModule
-  ],
+    imports: [
+        BrowserModule,
+        CommonModule,
+        GoogleMapsModule,
+        BrowserAnimationsModule,
+        MatDialogModule,
+        MatButtonModule,
+        AppRoutingModule,
+        MatSidenavModule,
+        MatFormFieldModule,
+        MatDatepickerModule,
+        MatInputModule,
+        HttpClientModule,
+        MatCheckboxModule,
+        MatSelectModule,
+        HttpClientJsonpModule,
+        MatIconModule,
+        MatToolbarModule,
+        MatTabsModule,
+        ServiceWorkerModule.register("ngsw-worker.js", {
+            enabled: environment.production,
+            // Register the ServiceWorker as soon as the app is stable
+            // or after 30 seconds (whichever comes first).
+            registrationStrategy: "registerWhenStable:30000"
+        }),
+        MatExpansionModule,
+        FontAwesomeModule,
+        MatFormFieldModule,
+        MatNativeDateModule,
+        MatDatepickerModule,
+        ReactiveFormsModule,
+        MatButtonToggleModule
+    ],
   providers: [
     StateDataService,
     SvgRenderService,

@@ -6,8 +6,6 @@
 Selecteer scherm in sidebar, en sidebar dissapear on click
 
 
-// Voor min en max nr's :
-// alles overzetten  naar formgroup
 
 
 
@@ -17,6 +15,8 @@ https://material.angular.io/guide/theming#themes
 https://material.angular.io/guide/theming-your-components
 
 
+
+-- Implementeer een DCA strategy
 
 
 
@@ -30,36 +30,21 @@ Your PnL today would have been % (Q)
 
 
 // Een lijntje met fng level (2e dataset)
-// Kijken of chartjs minder punten op de X as kan tekenen, zodat ze niet diagonaal hoeven zoals bij
-coingecko app
-
 // fng moving average?
 
+
+
 // RSI: https://www.youtube.com/watch?v=G03vE4ZVrNk (requires tulip indicators en cg api voor prijs, omdat ik volgens mij alleen close nodig heb)
-// stoch?
+// stoch? // Maar hier heb je node voor nodig
 
 
+// Zie design:
 // Great buy / good buy / good sell etc op kaart laten plotten aan de hand van .... ???
 
 
 
 
-//Van feargread heb ik er soms 1 minder, dus je doet je foreach op je feargreed en matcht die met de coin data
-
-// Refactor waarbij je 1 map maakt met daarin:
-dataObj: DataObject = {
-	fngValueName: "greed",
-	date: new Date,
-	btcPrice: 40000,
-	fngValue: 75
-
-}
-
-// je heb weer een probleem als je heen en weer gaat (ander tabje)
-// Update aanroepe ofzo?
-
-// verhuis subscribption naar oninit ipv constructor
-
+-- Helemaal rechtsbovenin het  fear en greed nummer en ook de btc prijs, maak er een mooi clean toolbarretje van
 
 
 - Improve visibility of the chart on mobile screens
@@ -84,5 +69,16 @@ En dan
  Je kan zelf nummers invoeren
 
 
-// Probleem:
-bij feaRGREED heb je 14-17 april niet
+
+-However, i could in theory add some other tokens which can be displayed against the btc fear and greed index,
+ I actually think this feature doesn't exist anywhere yet
+
+
+// Note van Rik:
+dus nu kun je stellen, oke de rsi is lager MAAR
+1.de fng is hoger
+2. prijs is hoger
+3. stoch. rsi (k) is hoog
+
+dus dan nlet het bear div zijn en zit je dichtbij echte top en dus excellent sell printen
+z

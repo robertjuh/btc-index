@@ -16,20 +16,54 @@ Chart.register(...registerables);
   selector: "main-chart",
   template: `
     <div class="main-chart-container">
-      <div class="chart-toolbar-top chart-toolbar">
-        <button mat-stroked-button (click)="toggleLogScale()">logScale</button>
-      </div>
+
       <div class="chart-frame">
         <canvas id="myChart" width="400" height="400"></canvas>
       </div>
       <div class="chart-toolbar">
-        <button mat-stroked-button (click)="handleDayAmountSelection(30)">1 month</button>
-        <button mat-stroked-button (click)="handleDayAmountSelection(90)">90 days</button>
-        <button mat-stroked-button (click)="handleDayAmountSelection(180)">180 days</button>
-        <button mat-stroked-button (click)="handleDayAmountSelection(365)">1 Year</button>
+<!--        <button mat-stroked-button (click)="handleDayAmountSelection(30)">1M</button>
+        <button mat-stroked-button (click)="handleDayAmountSelection(90)">3M</button>
+        <button mat-stroked-button (click)="handleDayAmountSelection(180)">6m</button>
+        <button mat-stroked-button (click)="handleDayAmountSelection(365)">1Y</button>
         <button mat-stroked-button (click)="handleDayAmountSelectionYTD()">YTD</button>
-        <button mat-stroked-button (click)="handleDayAmountSelectionAll()">All</button>
+        <button mat-stroked-button (click)="handleDayAmountSelectionAll()">MAX</button>-->
+
+        <mat-button-toggle-group #group="matButtonToggleGroup" value="1Y">
+          <mat-button-toggle (click)="handleDayAmountSelection(30)" value="1M">
+            <span>1M</span>
+          </mat-button-toggle>
+
+          <mat-button-toggle (click)="handleDayAmountSelection(90)" value="3M">
+            <span>3M</span>
+          </mat-button-toggle>
+
+          <mat-button-toggle (click)="handleDayAmountSelection(180)" value="6m">
+            <span>6m</span>
+          </mat-button-toggle>
+
+          <mat-button-toggle  (click)="handleDayAmountSelection(365)" value="1Y">
+            <span>1Y</span>
+          </mat-button-toggle>
+
+          <mat-button-toggle  (click)="handleDayAmountSelectionYTD()" value="YTD">
+            <span>YTD</span>
+          </mat-button-toggle>
+
+          <mat-button-toggle  (click)="handleDayAmountSelectionAll()" value="MAX">
+            <span>MAX</span>
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+
+        <mat-button-toggle-group #group="matButtonToggleGroup" value="1Y">
+          <mat-button-toggle  (click)="toggleLogScale()" value="logScale">
+            <span>Toggle Log scale</span>
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+
       </div>
+
+
+
     </div>
   `,
   styleUrls: ["./main-chart.component.scss"]
@@ -71,13 +105,9 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
   private _defaultChartOptions: ChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    // maintainAspectRatio: true,
     scales: {
       x: {
-        /* display: true,*/
-        // title: {
-        //   display: true,
-        //   text: "Date"
-        // },
         ticks: {
           maxTicksLimit: 6,
           maxRotation: 0,
@@ -114,7 +144,20 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
            }*/
         }
       }
-    }
+    },
+    onResize(chart: any, size: { width: number; height: number }): void {
+      if (window.visualViewport.height < 600) {
+        // if (true) {
+        // chart.canvas.parentNode.style.height =  (window.visualViewport.height - 136) + "px"; // eerste button rij net zichtbaar op kleine schermen
+        chart.canvas.parentNode.style.height = (window.visualViewport.height - 136) + "px";
+      } else {
+        chart.canvas.parentNode.style.height = (window.visualViewport.height - 194) + "px";
+
+        // chart.canvas.parentNode.style.height = "500px";
+      }
+      // chart.canvas.parentNode.style.width = size.width + "px";
+    },
+    resizeDelay: 250
   };
 
 
@@ -130,62 +173,6 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
   ) {
     console.log("Constructor");
 
-    /*if (!this.dataService.everyThingLoaded.observers?.length) {
-      this.dataService.everyThingLoaded.subscribe((value: { coinPrices: CoingeckoApiData; fearGreed: any; }) => {
-
-
-        this.dataService.loadedCoinPrices = value.coinPrices.prices;
-        this.dataService.loadedFearIndexes = [...value.fearGreed.data];
-        this.dataService.loadedFearIndexes.reverse();
-        this.dataService.loadedCompleteData = [];
-
-        // this.dataService.loadedCompleteData = this.dataService.loadedCoinPrices.map((x: TimeStampAndNumber) => return {
-        /!*      this.dataService.loadedCompleteData = this.dataService.loadedCoinPrices.map(({timeStamp, numberValue}, index) => (
-                 {
-                  fngValueName: "test",
-                  fngValue: FearAndGreedName.Neutral,
-                  btcPrice: numberValue,
-                  date: new Date(timeStamp)
-                }
-              ));*!/
-
-
-        this.dataService.loadedCoinPrices.forEach((coinPriceItem: TimeStampAndNumber, index: number) => {
-          this.dataService.loadedCompleteData.push({
-            fngValueName: this.dataService.loadedFearIndexes[index].value_classification,
-            fngValue: this.dataService.loadedFearIndexes[index].value,
-            btcPrice: coinPriceItem[1],
-            date: new Date(coinPriceItem[0])
-          });
-        });
-
-        console.log("ja alles compleet", this.dataService.loadedCompleteData);
-
-        /!*      fngValueName: "test",
-                fngValue: FearAndGreedName.Neutral,
-                btcPrice: 1234,
-                date: new Date()
-
-              };*!/
-
-
-        // this.dataService.loadedCompleteData ;
-
-        if (this.mainChart) {
-          this._updateChartData();
-        } else {
-          this._createChartComponentWithData();
-        }
-
-      });
-    }*/
-
-
-    /*    if (this.mainChart) {
-          this._updateChartData();
-        } else {
-          this._createChartComponentWithData();
-        }*/
 
   }
 
@@ -324,7 +311,7 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
   }
 
   public handleDayAmountSelectionAll(): void {
-    const start: Date = new Date("02-01-2018");
+    const start: Date = new Date("02/01/2018");
     const end: Date = new Date();
 
     const startAndEndDate: StartAndEndDate = {

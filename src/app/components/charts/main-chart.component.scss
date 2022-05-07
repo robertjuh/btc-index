@@ -9,13 +9,17 @@
   .main-chart-container {
     background: $dark-background;
     // background: white;
-    padding: 20px;
+    // padding: 20px;
+    padding: 10px;
     border-radius: 10px;
 
     .chart-toolbar {
+      justify-content: space-between;
+      height: 75px;
       display: flex;
-      justify-content: center;
-      flex-flow: wrap;
+      flex-direction: column;
+      /*justify-content: center;
+      flex-flow: wrap;*/
       button {
         margin: 2px;
         @include dark-button-style;
@@ -28,15 +32,56 @@
         color: whitesmoke;*/
       }
     }
+
+
+    // nieuwe toggle button style
+    mat-button-toggle-group {
+      // background: transparent;
+      height: 32px;
+      background: #212121;
+      align-items: center;
+      width: fit-content;
+
+
+      mat-button-toggle {
+        background: transparent;
+
+        button {
+          height: 100% !important;
+        }
+
+        &.mat-button-toggle-checked {
+          // background: #490d9578;
+          background: #490d9578;
+        }
+
+        mat-button-toggle-label-content {
+          top: -2px;
+          position: inherit;
+        }
+
+        .mat-button-toggle-button {
+          height: 100% !important;
+          .mat-button-toggle-label-content {
+            height: 100%;
+          }
+        }
+      }
+
+      span {
+        color: whitesmoke;
+      }
+    }
   }
 
   .chart-frame {
     display: block;
     min-width: calc(100vw - 100px);
     width: calc(100vw - 100px);
+
+    // Zet deze width weer aan als je aspect ratio uitzet in de chart setings
     /*
     width: 700px;*/
-    height: 700px;
 
   }
 
@@ -46,7 +91,10 @@
     }
 
     .chart-frame {
+      // Zet deze height weer aan als je aspect ratio uitzet in de chart setings
+      /*
       height: 400px;
+      */
       width: calc(100vw - 20px);
     }
   }
