@@ -1,6 +1,5 @@
-import {AfterViewInit, Component, HostListener, Input, OnDestroy, OnInit} from "@angular/core";
+import {AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
 import {Chart, ChartOptions, DatasetChartOptions, registerables, ScriptableLineSegmentContext} from "chart.js";
-import {CoingeckoApiData} from "../../models/interface/coingecko-api-data.interface";
 import {TimeStampAndNumber} from "../../models/interface/timestamp-and-number.interface";
 import {StateDataService} from "../../services/state-data.service";
 import {ApiConnectorService} from "../../services/api-connector.service";
@@ -9,6 +8,7 @@ import {StartAndEndDate} from "../../models/interface/start-and-end-date.interfa
 import {Title} from "@angular/platform-browser";
 import {Subscription} from "rxjs";
 import {CompleteDataObject} from "../../models/interface/complete-data-object.interface";
+import {MatDatepickerInputEvent, MatDateRangePicker} from "@angular/material/datepicker";
 
 Chart.register(...registerables);
 
@@ -21,12 +21,12 @@ Chart.register(...registerables);
         <canvas id="myChart" width="400" height="400"></canvas>
       </div>
       <div class="chart-toolbar">
-<!--        <button mat-stroked-button (click)="handleDayAmountSelection(30)">1M</button>
-        <button mat-stroked-button (click)="handleDayAmountSelection(90)">3M</button>
-        <button mat-stroked-button (click)="handleDayAmountSelection(180)">6m</button>
-        <button mat-stroked-button (click)="handleDayAmountSelection(365)">1Y</button>
-        <button mat-stroked-button (click)="handleDayAmountSelectionYTD()">YTD</button>
-        <button mat-stroked-button (click)="handleDayAmountSelectionAll()">MAX</button>-->
+        <!--        <button mat-stroked-button (click)="handleDayAmountSelection(30)">1M</button>
+                <button mat-stroked-button (click)="handleDayAmountSelection(90)">3M</button>
+                <button mat-stroked-button (click)="handleDayAmountSelection(180)">6m</button>
+                <button mat-stroked-button (click)="handleDayAmountSelection(365)">1Y</button>
+                <button mat-stroked-button (click)="handleDayAmountSelectionYTD()">YTD</button>
+                <button mat-stroked-button (click)="handleDayAmountSelectionAll()">MAX</button>-->
 
         <mat-button-toggle-group #group="matButtonToggleGroup" value="1Y">
           <mat-button-toggle (click)="handleDayAmountSelection(30)" value="1M">
@@ -41,40 +41,62 @@ Chart.register(...registerables);
             <span>6m</span>
           </mat-button-toggle>
 
-          <mat-button-toggle  (click)="handleDayAmountSelection(365)" value="1Y">
+          <mat-button-toggle (click)="handleDayAmountSelection(365)" value="1Y">
             <span>1Y</span>
           </mat-button-toggle>
 
-          <mat-button-toggle  (click)="handleDayAmountSelectionYTD()" value="YTD">
+          <mat-button-toggle (click)="handleDayAmountSelectionYTD()" value="YTD">
             <span>YTD</span>
           </mat-button-toggle>
 
-          <mat-button-toggle  (click)="handleDayAmountSelectionAll()" value="MAX">
+          <mat-button-toggle (click)="handleDayAmountSelectionAll()" value="MAX">
             <span>MAX</span>
           </mat-button-toggle>
         </mat-button-toggle-group>
 
         <mat-button-toggle-group #group="matButtonToggleGroup" value="1Y">
-          <mat-button-toggle  (click)="toggleLogScale()" value="logScale">
+          <mat-button-toggle (click)="toggleLogScale()" value="logScale">
             <span>Toggle Log scale</span>
           </mat-button-toggle>
         </mat-button-toggle-group>
 
+
       </div>
-
-
+      <mat-form-field appearance="fill">
+        <mat-label [style]="'color: whitesmoke'">Enter a date range</mat-label>
+        <mat-date-range-input [rangePicker]="$any(picker)" [min]="minPickableDate" (durationchange)="testF($event)"
+                              [max]="maxPickableDate">
+          <input matStartDate (dateChange)="handleStartDateChange($event)" placeholder="Start date">
+          <input matEndDate (dateChange)="handleEndDateChange($event)" #endDateComp placeholder="End date">
+        </mat-date-range-input>
+        <mat-hint></mat-hint>
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+      </mat-form-field>
 
     </div>
   `,
   styleUrls: ["./main-chart.component.scss"]
 })
 export class MainChartComponent implements AfterViewInit, OnDestroy {
+  @ViewChild(MatDateRangePicker, {static: false})
+  public pickerComp: MatDateRangePicker<Date>;
+
+  @ViewChild("endDateComp")
+  public endDateComp: ElementRef;
+
+  @Output()
+  public dateRangeSelected: EventEmitter<StartAndEndDate> = new EventEmitter<StartAndEndDate>();
+
   public canvas: HTMLCanvasElement;
   public ctx: CanvasRenderingContext2D;
 
   public mainChart: Chart;
 
   public isLogScale: boolean = false;
+
+  public minPickableDate: Date;
+  public maxPickableDate: Date;
 
   public set screenWidth(value: number) {
     this._screenWidth = value;
@@ -101,6 +123,7 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
 
   private _screenWidth: number;
   private _btcPriceData: TimeStampAndNumber[];
+  private _ytdDays: number;
 
   private _defaultChartOptions: ChartOptions = {
     responsive: true,
@@ -166,12 +189,17 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
     this.screenWidth = window.innerWidth;
   }
 
+
   constructor(
     public dataService: StateDataService,
     public apiConnectorService: ApiConnectorService,
     private _titleService: Title
   ) {
     console.log("Constructor");
+    this.minPickableDate = new Date(2018, 1, 3);
+    this.maxPickableDate = new Date();
+
+    this._getYTD();
 
 
   }
@@ -333,6 +361,45 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
     };
 
     this.apiConnectorService.loadCollectionWithParams(startAndEndDate);
+  }
+
+  public handleStartDateChange(event: MatDatepickerInputEvent<any, any>): void {
+    if (this.endDateComp.nativeElement.value) {
+      this.handleEndDateChange(event);
+    }
+  }
+
+  public handleEndDateChange(event: any): void {
+    const startDate: Date = new Date(this.pickerComp.startAt);
+    const endDate: Date = new Date(this.endDateComp.nativeElement.value);
+    this.apiConnectorService.loadCollectionWithParams({
+      startDate,
+      endDate
+    });
+    // this._loadCollectionWithParams(event);
+
+    /*    this.dateRangeSelected.next({
+          startDate,
+          endDate
+        });*/
+  }
+
+  public testF(event: any): void {
+    console.log("daterange channge");
+  }
+
+  // returns amount of days from this year untill now
+  private _getYTD(): void {
+    const now: Date = new Date();
+    const currentYearTillNow: Date = new Date(new Date().getFullYear(), 0, 1);
+
+    // Dit rekent het verschil tussen de daterange uit
+    const diffTime: number = Math.abs(now.getTime() - currentYearTillNow.getTime());
+    const diffDays: number = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+
+    console.log("diffDays", diffDays);
+    this._ytdDays = diffDays;
   }
 
   private _updateChartData(): void {

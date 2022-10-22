@@ -17,39 +17,7 @@
       padding: 10px 15px;
     }
 
-    .url-container {
-      a {
 
-        color: whitesmoke;
-        margin: 20px;
-        user-select: none;
-        text-underline-offset: 7px;
-        padding: 10px;
-        text-decoration: unset;
-        -webkit-user-drag: none;
-        -khtml-user-drag: none;
-        -moz-user-drag: none;
-        -o-user-drag: none;
-        user-drag: none;
-
-        &.active {
-          background: #490d95;
-          text-decoration: underline;
-          pointer-events: none;
-        }
-        &:not(.active) {
-          &:hover {
-            background: #490d955c;
-          }
-        }
-
-
-      }
-
-/*      a:hover {
-        background: #490d955c;
-      }*/
-    }
   }
 
   .mat-drawer {
@@ -146,6 +114,8 @@
   .sidenav-content-container {
     height: 100vh;
     border: 1px solid rgba(0, 0, 0, 0.5);
+    background: #101010;
+
 
     .close-button {
 
@@ -192,7 +162,7 @@
 
   @media screen and (min-width: $xs-width) {
     .drawer-content {
-      width: 500px;
+      width: 170px;
     }
   }
 

@@ -3,6 +3,34 @@
 @import "src/app/style/mixins/mixins.mixins";
 
 :host {
+  .url-container {
+    flex-direction: column;
+
+    a {      color: whitesmoke;
+      padding: 10px;
+      user-select: none;
+      text-underline-offset: 7px;
+      width: 100%;
+      text-decoration: unset;
+      -webkit-user-drag: none;
+      -khtml-user-drag: none;
+      -moz-user-drag: none;
+      -o-user-drag: none;
+      user-drag: none;
+
+      &.active {
+        background: #490d95;
+        text-decoration: underline;
+        pointer-events: none;
+      }
+      &:not(.active) {
+        &:hover {
+          background: #490d955c;
+        }
+      }
+    }
+  }
+
   .main-info-box-container {
     // background: #e9e9e9bf;
     position: absolute;

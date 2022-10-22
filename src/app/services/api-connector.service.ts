@@ -6,6 +6,7 @@ import {HttpClient} from "@angular/common/http";
 import {StartAndEndDate} from "../models/interface/start-and-end-date.interface";
 import {getDayDiff} from "./utils";
 import {StateDataService} from "./state-data.service";
+import {CryptoCompareApiData} from "../models/interface/cryptoCompare-api-data.interface";
 
 
 /**
@@ -15,7 +16,7 @@ import {StateDataService} from "./state-data.service";
   providedIn: "root"
 })
 export class ApiConnectorService {
-  public coingeckoApiDataLoaded = new Subject<CoingeckoApiData>();
+  public coingeckoApiDataLoaded = new Subject<CryptoCompareApiData>();
   public fearGreedIndexDataLoaded = new Subject<FearGreedDataPoint[]>();
   public coingeckoTodayDataLoaded = new Subject<number>();
 
@@ -70,13 +71,14 @@ export class ApiConnectorService {
     )
       .then((response) => response.text())
       .then((result) => {
-        const coingeckoAPIResult: CoingeckoApiData = JSON.parse(result);
+        // const coingeckoAPIResult: CoingeckoApiData = JSON.parse(result);
+        const coingeckoAPIResult: CryptoCompareApiData = JSON.parse(result);
 
         /*if (pricesResult?.prices.length) {
           this.pricesLoaded.next(pricesResult.prices);
         }
         */
-        if (coingeckoAPIResult?.prices.length) {
+        if (coingeckoAPIResult?.Data.Data.length) {
           this.coingeckoApiDataLoaded.next(coingeckoAPIResult);
         }
 
@@ -137,11 +139,11 @@ export class ApiConnectorService {
     const diffTime: number = Math.abs(stardAndEndDate.endDate.getTime() - stardAndEndDate.startDate.getTime());
     const diffDays: number = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays > 90) {
+/*    if (diffDays > 90) {
       this.dataService.amountOfDaysExceedsNinety = true;
     } else {
       this.dataService.amountOfDaysExceedsNinety = false;
-    }
+    }*/
 
     // Nu reken je het verschil tussen de stardate en vandaag, en dan pak je de eerste diffDays records
     const diffTimeBetweenStartAndToday: number = getDayDiff(new Date(stardAndEndDate.startDate), new Date());
@@ -150,24 +152,32 @@ export class ApiConnectorService {
 
     // Default query
     // const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${unixTimeStart}&to=${unixTimeEnd}`;
-    const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${Math.floor(unixTimeStart)}&to=${Math.floor(unixTimeEnd)}`;
+
+
+    //// const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${Math.floor(unixTimeStart)}&to=${Math.floor(unixTimeEnd)}`;
+    // const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=${diffTimeBetweenStartAndToday}`;
+    // const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=max`;
+    const cryptoCompareURL: string = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=USD&limit=${diffTimeBetweenStartAndToday - 1}&api_key=6fd8a5dae4abf92f08692a143f747514be4db1a8d0f56a9160219167b762be3f`;
+
+
     const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=us`;
     // const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=nl`;
 
 
     forkJoin({
-      coinPrices: this.forkjoinLoadPrices(coinGeckoUrl),
+      // coinPrices: this.forkjoinLoadPrices(cryptoCompareURL),
+      coinPrices: this.forkjoinLoadPrices(cryptoCompareURL),
       fearGreed: this.forkjoinLoadFearGreed(fearGreadURL)
     }).subscribe(
-      (value: { coinPrices: any; fearGreed: any; }) => {
-        if (value.coinPrices?.prices.length) {
+      (value: { coinPrices: CryptoCompareApiData; fearGreed: any; }) => {
+        if (value.coinPrices?.Data.Data.length) {
 
           const tempArry: any[] = [];
           const tempy3 = [];
 
           // coingecko returns hourly instead of daily when requesting under 90 days;
-          if (!this.dataService.amountOfDaysExceedsNinety) {
-            value.coinPrices.prices.forEach((priceObj) => {
+/*          if (!this.dataService.amountOfDaysExceedsNinety) {
+            value.coinPrices.forEach((priceObj) => {
               const testDate = new Date(priceObj[0]);
               if (!tempArry.includes(testDate.toDateString()) &&
                 new Date().toLocaleDateString() !== testDate.toLocaleDateString()) {
@@ -175,8 +185,9 @@ export class ApiConnectorService {
                 tempy3.push(priceObj);
               }
             });
-            value.coinPrices.prices = tempy3;
-          }
+            // value.coinPrices.prices = tempy3;
+            value.coinPrices = tempy3;
+          }*/
 
 
           this.dataService.everyThingLoaded.next(value);
@@ -187,7 +198,8 @@ export class ApiConnectorService {
     );
 
 
-    this.loadAllPrices(coinGeckoUrl);
+    this.loadAllPrices(cryptoCompareURL);
+    // this.loadAllPrices(coinGeckoUrl);
     this.loadFearGreedIndex(fearGreadURL);
   }
 

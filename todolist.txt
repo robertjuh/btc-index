@@ -1,14 +1,18 @@
 
 
 
+// lijntje met de btc prijs
+// btc prijs rechtsbovenin met logo
 
 // maak een nieuw venster/tabje voor "Strategies & backtesting"
-Selecteer scherm in sidebar, en sidebar dissapear on click
+Selecteer scherm in sidebar, en sidebar dissapear on click (icons)
 
 
+// Controleer of de dagen van de 2 datasets overeenkomen want hij lijkt eentje opgeschoven
 
+// Bannertje bovenin met de gekozen daterange
 
-
+// Bij enter date range veldje nu, stijl mooier. En als je een range kiest, maak dan alle buttons daarboven non-active (is misleidend)
 
 //theming:
 https://material.angular.io/guide/theming#themes
@@ -24,7 +28,7 @@ If you started with 10000 dollar (x), and you invested 5% (Y) every time that th
 Your PnL today would have been % (Q)
 
 If you started with 10000 dollar (x), and you invested 5% (Y) every time that the fear index went below 20 (Z)
-and sold 
+and sold
 Your PnL today would have been % (Q)
 
 
@@ -82,3 +86,5 @@ dus nu kun je stellen, oke de rsi is lager MAAR
 
 dus dan nlet het bear div zijn en zit je dichtbij echte top en dus excellent sell printen
 z
+\
+

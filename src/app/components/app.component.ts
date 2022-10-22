@@ -12,6 +12,8 @@ import {Title} from "@angular/platform-browser";
 import {Router} from "@angular/router";
 import {FearAndGreedName} from "../models/enum/fear-and-greed-name.enum";
 import {FearGreedDataPoint} from "../models/interface/fear-greed-data-point.interface";
+import {CryptoCompareApiData} from "../models/interface/cryptoCompare-api-data.interface";
+import {CryptoCompareApiDataPoint} from "../models/interface/cryptoCompare-api-data-point.interface";
 
 /*<button class="close-button" (click)="drawer.toggle()" mat-raised-button>
 Close
@@ -32,7 +34,7 @@ Close
         </div>
 
         <sidebar-info-panel
-          (dateRangeSelected)="handleDateRangeSelected($event)"
+          (onMenuItemClick)="drawer.toggle()"
           (amountOfDaysToSHowSelectionChange)="handleAmountOfDaysToSHowSelectionChange($event)"
         ></sidebar-info-panel>
       </mat-drawer>
@@ -48,16 +50,16 @@ Close
           </button>
 
 
-          <div class="url-container" style="display:flex">
-            <a [routerLink]="'chart'" [class.active]="isActive('/chart')">
-              <h4>Chart</h4>
-            </a>
-            <a [routerLink]="'strategy'" [class.active]="isActive('/strategy')">
-              <h3>Strategy</h3>
-            </a>
-          </div>
+          <!--          <div class="url-container" style="display:flex">
+                      <a [routerLink]="'chart'" [class.active]="isActive('/chart')">
+                        <h4>Chart</h4>
+                      </a>
+                      <a [routerLink]="'strategy'" [class.active]="isActive('/strategy')">
+                        <h3>Strategy</h3>
+                      </a>
+                    </div>-->
 
-          <span class="fear-index-number-block-p" [style]="'color:' + currentFearLvlColor + ';'" [textContent]="currentFearLvl"></span>
+          <span class="fear-index-number-block-p" [style]="'color:' + currentFearLvlColor + ';'" [textContent]="topRightTextContent"></span>
 
         </mat-toolbar>
 
@@ -92,6 +94,14 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     return this._dataSvc.lastFearIndex;
   }
 
+  public get topRightTextContent(): string {
+    return `${this.lastBtcPriceStr} ${this.currentFearLvl}`;
+  }
+
+  public get lastBtcPriceStr(): string {
+    return !!this._dataSvc.lastBtcPrice ? `$ ${this._dataSvc.lastBtcPrice}` : "";
+  }
+
   public get currentFearLvlColor(): string {
     return getColorForIndex(this._dataSvc.lastFearIndexName);
   }
@@ -104,7 +114,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     private _dialogRef: MatDialog,
     private _dataSvc: StateDataService,
     private _titleService: Title,
-    private _router: Router
+    /*
+        private _router: Router
+    */
   ) {
   }
 
@@ -116,19 +128,25 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     if (!this._dataSvc.everyThingLoaded.observers?.length) {
-      this._dataSvc.everyThingLoaded.subscribe((value: { coinPrices: CoingeckoApiData; fearGreed: any; }) => {
+      // this._dataSvc.everyThingLoaded.subscribe((value: { coinPrices: CoingeckoApiData; fearGreed: any; }) => {
+      this._dataSvc.everyThingLoaded.subscribe((value: { coinPrices: CryptoCompareApiData; fearGreed: any; }) => {
 
 
-        this._dataSvc.loadedCoinPrices = value.coinPrices.prices;
+        // this._dataSvc.loadedCoinPrices = value.coinPrices.prices;
+        this._dataSvc.loadedCoinPrices = value.coinPrices.Data.Data;
         this._dataSvc.loadedFearIndexes = [...value.fearGreed.data];
         this._dataSvc.loadedFearIndexes.reverse();
         this._dataSvc.loadedCompleteData = [];
 
 
+        this._dataSvc.setLastBTCPrice(value.coinPrices.Data.Data);
+
+
         let previousDate: Date;
         let lastKnownFearValue: string;
         let lastKnownFearValueStr: FearAndGreedName;
-        this._dataSvc.loadedCoinPrices.forEach((fgObj: TimeStampAndNumber, index: number) => {
+        this._dataSvc.loadedCoinPrices.forEach((fgObj: CryptoCompareApiDataPoint, index: number) => {
+          // this._dataSvc.loadedCoinPrices.forEach((fgObj: TimeStampAndNumber, index: number) => {
           // const englishDateStr: string = this._dataSvc.loadedFearIndexes[index].timestamp;
           // this._dataSvc.loadedFearIndexes[index].timestamp = convertDate(englishDateStr);
 
@@ -219,22 +237,23 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
         // Check the feargreed dataset first and insert dummy data in missing datapoints
-        this._dataSvc.loadedCoinPrices.forEach((coinPriceItem: TimeStampAndNumber, index: number) => {
+        // this._dataSvc.loadedCoinPrices.forEach((coinPriceItem: TimeStampAndNumber, index: number) => {
+        /*        this._dataSvc.loadedCoinPrices.forEach((coinPriceItem: CryptoCompareApiDataPoint, index: number) => {
 
 
-          // insert hier wat shit in je loadedFearIndexes
-          /*const dummyDataObj: FearGreedDataPoint = {
-            value: "14",
-            timestamp: date2.toLocaleDateString(),
-            value_classification: FearAndGreedName.NullValue,
-          };
+                  // insert hier wat shit in je loadedFearIndexes
+                  /!*const dummyDataObj: FearGreedDataPoint = {
+                    value: "14",
+                    timestamp: date2.toLocaleDateString(),
+                    value_classification: FearAndGreedName.NullValue,
+                  };
 
-          this._dataSvc.loadedFearIndexes.splice(index, 0, dummyDataObj);*/
+                  this._dataSvc.loadedFearIndexes.splice(index, 0, dummyDataObj);*!/
 
-        });
+                });*/
         console.log("na de modificatie", this._dataSvc.loadedFearIndexes);
 
-        this._dataSvc.loadedCoinPrices.forEach((coinPriceItem: TimeStampAndNumber, index: number) => {
+        this._dataSvc.loadedCoinPrices.forEach((coinPriceItem: CryptoCompareApiDataPoint, index: number) => {
           if (!this._dataSvc.loadedFearIndexes[index]) {
             console.log("wat gebeurt er?");
           }
@@ -270,8 +289,8 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
           this._dataSvc.loadedCompleteData.push({
             fngValueName: this._dataSvc.loadedFearIndexes[index].value_classification,
             fngValue: this._dataSvc.loadedFearIndexes[index].value,
-            btcPrice: coinPriceItem[1],
-            date: new Date(coinPriceItem[0])
+            btcPrice: coinPriceItem.close,
+            date: new Date(coinPriceItem.time * 1000)
           });
         });
 
@@ -292,9 +311,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     // this._loadCollectionWithParams(event);
   }
 
-  public isActive(routerStr: string): boolean {
-    return (this._router.url !== "/") ? this._router.url === routerStr : (routerStr === "/chart");
-  }
+  /*  public isActive(routerStr: string): boolean {
+      return (this._router.url !== "/") ? this._router.url === routerStr : (routerStr === "/chart");
+    }*/
 
   public handleAmountOfDaysToSHowSelectionChange(event: MatOptionSelectionChange): void {
     if (event.isUserInput) {
