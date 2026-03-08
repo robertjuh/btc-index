@@ -16,7 +16,6 @@ import {SidebarInfoPanelComponent} from "../components/sidebar-info/sidebar-info
 import {MatExpansionModule} from "@angular/material/expansion";
 import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
 import {CommonModule} from "@angular/common";
-import {GoogleMapsModule} from "@angular/google-maps";
 import {HttpClientJsonpModule, HttpClientModule} from "@angular/common/http";
 import {MainChartComponent} from "../components/charts/main-chart.component";
 import { MatFormFieldModule} from "@angular/material/form-field";
@@ -45,7 +44,6 @@ import {MatButtonToggleModule} from "@angular/material/button-toggle";
     imports: [
         BrowserModule,
         CommonModule,
-        GoogleMapsModule,
         BrowserAnimationsModule,
         MatDialogModule,
         MatButtonModule,
