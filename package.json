@@ -35,7 +35,6 @@
     "@fortawesome/free-solid-svg-icons": "^6.0.0",
     "@kurkle/color": "^0.1.9",
     "@types/axios": "^0.14.0",
-    "angular-material": "^1.2.3",
     "axios": "^0.26.1",
     "chart.js": "^3.7.1",
     "chartjs-adapter-luxon": "^1.1.0",
