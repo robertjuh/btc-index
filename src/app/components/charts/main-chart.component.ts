@@ -54,9 +54,9 @@ Chart.register(...registerables);
           </mat-button-toggle>
         </mat-button-toggle-group>
 
-        <mat-button-toggle-group #group="matButtonToggleGroup" value="1Y">
-          <mat-button-toggle (click)="toggleLogScale()" value="logScale">
-            <span>Toggle Log scale</span>
+        <mat-button-toggle-group [(value)]="logScaleValue">
+          <mat-button-toggle (click)="toggleLogScale()" value="on">
+            <span>Log scale</span>
           </mat-button-toggle>
         </mat-button-toggle-group>
 
@@ -87,6 +87,8 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
 
   @Output()
   public dateRangeSelected: EventEmitter<StartAndEndDate> = new EventEmitter<StartAndEndDate>();
+
+  public logScaleValue: string = 'off';
 
   public canvas: HTMLCanvasElement;
   public ctx: CanvasRenderingContext2D;
@@ -236,7 +238,10 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
 
   public toggleLogScale(): void {
     this.isLogScale = !this.isLogScale;
-    this.isLogScale ? this.mainChart.config.options.scales.y.type = "logarithmic" : this.mainChart.config.options.scales.y.type = "linear";
+    this.logScaleValue = this.isLogScale ? 'on' : 'off';
+    this.isLogScale
+      ? this.mainChart.config.options.scales.y.type = "logarithmic"
+      : this.mainChart.config.options.scales.y.type = "linear";
     this.mainChart.update();
   }
 

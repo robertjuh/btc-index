@@ -7,6 +7,7 @@ import {StartAndEndDate} from "../models/interface/start-and-end-date.interface"
 import {getDayDiff} from "./utils";
 import {StateDataService} from "./state-data.service";
 import {CryptoCompareApiData} from "../models/interface/cryptoCompare-api-data.interface";
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 
 /**
@@ -24,6 +25,7 @@ export class ApiConnectorService {
   constructor(
     public http: HttpClient,
     public dataService: StateDataService,
+    private _snackBar: MatSnackBar
   ) {
 
   }
@@ -157,11 +159,27 @@ export class ApiConnectorService {
     //// const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${Math.floor(unixTimeStart)}&to=${Math.floor(unixTimeEnd)}`;
     // const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=${diffTimeBetweenStartAndToday}`;
     // const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=max`;
-    const cryptoCompareURL: string = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=USD&limit=${diffTimeBetweenStartAndToday - 1}&api_key=6fd8a5dae4abf92f08692a143f747514be4db1a8d0f56a9160219167b762be3f`;
+    // const cryptoCompareURL: string = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=USD&limit=${diffTimeBetweenStartAndToday - 1}&api_key=6fd8a5dae4abf92f08692a143f747514be4db1a8d0f56a9160219167b762be3f`;
 
 
-    const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=us`;
+    // const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=us`;
     // const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=nl`;
+
+    const MAX_DAYS = 2000; // cryptocompare hard cap
+    const wasCapped = diffTimeBetweenStartAndToday > MAX_DAYS;
+    const cappedDays = Math.min(diffTimeBetweenStartAndToday, MAX_DAYS);
+    const cryptoCompareURL = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=USD&limit=${cappedDays - 1}&api_key=6fd8a5dae4abf92f08692a143f747514be4db1a8d0f56a9160219167b762be3f`;
+    const fearGreadURL = `https://api.alternative.me/fng/?limit=${cappedDays}&date_format=us`;
+
+
+    if (wasCapped) {
+      this._snackBar.open('Showing maximum of 2000 days (API limit)', 'OK', {
+        duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+      });
+    }
+
 
 
     forkJoin({
@@ -170,6 +188,19 @@ export class ApiConnectorService {
       fearGreed: this.forkjoinLoadFearGreed(fearGreadURL)
     }).subscribe(
       (value: { coinPrices: CryptoCompareApiData; fearGreed: any; }) => {
+
+        if (value.coinPrices.Response === "Error") {
+          this._snackBar.open(value.coinPrices.Message, 'Close', {
+            duration: 4000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+          });
+
+          console.log('error');
+
+          return;
+        }
+
         if (value.coinPrices?.Data.Data.length) {
 
           const tempArry: any[] = [];
@@ -198,9 +229,9 @@ export class ApiConnectorService {
     );
 
 
-    this.loadAllPrices(cryptoCompareURL);
-    // this.loadAllPrices(coinGeckoUrl);
-    this.loadFearGreedIndex(fearGreadURL);
+    // this.loadAllPrices(cryptoCompareURL);
+    // // this.loadAllPrices(coinGeckoUrl);
+    // this.loadFearGreedIndex(fearGreadURL);
   }
 
 }

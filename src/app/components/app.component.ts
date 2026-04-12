@@ -270,7 +270,6 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
           // console.log(date2);
 
           if (date1.getTime() !== date2.getTime()) {
-            console.log("wtff");
 
             // Insert filler data when missing feargreedDatapoints
             /*            this._dataSvc.loadedCompleteData.push({
