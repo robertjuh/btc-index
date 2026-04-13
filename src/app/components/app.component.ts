@@ -5,12 +5,11 @@ import {MatDialog} from "@angular/material/dialog";
 import {Subscription} from "rxjs";
 import {CoingeckoApiData} from "../models/interface/coingecko-api-data.interface";
 import {TimeStampAndNumber} from "../models/interface/timestamp-and-number.interface";
-import {addDays, dayCheck, getColorForIndex} from "../services/utils";
+import {getColorForIndex, getPastDaysRange} from "../services/utils";
 import {MatOptionSelectionChange} from "@angular/material/core";
 import {StartAndEndDate} from "../models/interface/start-and-end-date.interface";
 import {Title} from "@angular/platform-browser";
 import {Router} from "@angular/router";
-import {FearAndGreedName} from "../models/enum/fear-and-greed-name.enum";
 import {FearGreedDataPoint} from "../models/interface/fear-greed-data-point.interface";
 import {CryptoCompareApiData} from "../models/interface/cryptoCompare-api-data.interface";
 import {CryptoCompareApiDataPoint} from "../models/interface/cryptoCompare-api-data-point.interface";
@@ -59,7 +58,17 @@ Close
                       </a>
                     </div>-->
 
-          <span class="fear-index-number-block-p" [style]="'color:' + currentFearLvlColor + ';'" [textContent]="topRightTextContent"></span>
+          <div class="top-right-stats">
+            <span class="top-right-chip btc-chip">
+              <span class="chip-label">BTC</span>
+              <span class="chip-value">{{ lastBtcPriceStr }}</span>
+            </span>
+
+            <span class="top-right-chip fear-chip" [style.borderColor]="currentFearLvlColor">
+              <span class="chip-label">Fear & Greed</span>
+              <span class="chip-value" [style.color]="currentFearLvlColor">{{ currentFearLvl }}</span>
+            </span>
+          </div>
 
         </mat-toolbar>
 
@@ -91,15 +100,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public get currentFearLvl(): string {
-    return this._dataSvc.lastFearIndex;
-  }
-
-  public get topRightTextContent(): string {
-    return `${this.lastBtcPriceStr} ${this.currentFearLvl}`;
+    return this._dataSvc.lastFearIndex ?? "--";
   }
 
   public get lastBtcPriceStr(): string {
-    return !!this._dataSvc.lastBtcPrice ? `$ ${this._dataSvc.lastBtcPrice}` : "";
+    return typeof this._dataSvc.lastBtcPrice === "number" ? `$ ${this._dataSvc.lastBtcPrice}` : "--";
   }
 
   public get currentFearLvlColor(): string {
@@ -142,70 +147,43 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
         this._dataSvc.setLastBTCPrice(value.coinPrices.Data.Data);
 
 
-        let previousDate: Date;
-        let lastKnownFearValue: string;
-        let lastKnownFearValueStr: FearAndGreedName;
-        this._dataSvc.loadedCoinPrices.forEach((fgObj: CryptoCompareApiDataPoint, index: number) => {
-          // this._dataSvc.loadedCoinPrices.forEach((fgObj: TimeStampAndNumber, index: number) => {
-          // const englishDateStr: string = this._dataSvc.loadedFearIndexes[index].timestamp;
-          // this._dataSvc.loadedFearIndexes[index].timestamp = convertDate(englishDateStr);
+        const getUtcDateKey = (date: Date): string => {
+          return `${date.getUTCFullYear()}-${date.getUTCMonth() + 1}-${date.getUTCDate()}`;
+        };
 
+        const parseFearTimestamp = (timestamp: string): Date => {
+          const [month, day, year] = timestamp.split("-").map((value) => parseInt(value, 10));
+          return new Date(Date.UTC(year, month - 1, day));
+        };
 
-          const dateStrArr: string[] = this._dataSvc.loadedFearIndexes[index].timestamp.toString().split("-");
+        const fearByDate = new Map<string, FearGreedDataPoint>();
+        this._dataSvc.loadedFearIndexes.forEach((fearIndex) => {
+          fearByDate.set(getUtcDateKey(parseFearTimestamp(fearIndex.timestamp.toString())), fearIndex);
+        });
 
-          // previousDate = new Date(this._dataSvc.loadedFearIndexes[index].timestamp);
-          // @ts-ignore
-          const today: Date = new Date(this._dataSvc.loadedFearIndexes[index].timestamp.toString().replaceAll("-", "/"));
-          // const today: Date = new Date(parseInt(dateStrArr[2], 10), parseInt(dateStrArr[0], 10), parseInt(dateStrArr[1], 10));
+        const alignedFearIndexes: FearGreedDataPoint[] = [];
+        let lastKnownFearPoint: FearGreedDataPoint | undefined;
+        this._dataSvc.loadedCoinPrices.forEach((coinPriceItem: CryptoCompareApiDataPoint) => {
+          const coinDate = new Date(coinPriceItem.time * 1000);
+          const matchedFearPoint = fearByDate.get(getUtcDateKey(coinDate));
 
-          // const today: Date = new Date(this._dataSvc.loadedFearIndexes[index].timestamp);
-          today.setHours(0, 0, 0, 0);
-
-
-          if (previousDate) {
-
-
-            const isConsecutiveDate: boolean = dayCheck([previousDate, today]);
-
-
-            if (isConsecutiveDate) {
-
-              lastKnownFearValue = this._dataSvc.loadedFearIndexes[index].value;
-              lastKnownFearValueStr = this._dataSvc.loadedFearIndexes[index].value_classification;
-              // wat je moet doen is de dayCheck functie aanroepen met een array met 2 dates
-              // previousDate en current date.
-              // dan iets van: this._dataSvc.loadedFearIndexes.splice(index - 1, 0, dummyDataObj);*/
-              // probeer ff met lage dataset
-              // 12 april 2018 tot 19 april 2018
-
-              // Check if the next day is aanslutend op de previous
-              // zo niet, blijf toevoegen
-
-            } else {
-              const dummyObj: FearGreedDataPoint = {
-                value: lastKnownFearValue,
-                value_classification: lastKnownFearValueStr, // TODO Je kan deze ook neutraal maken ofzo? dat ie dan zwart word
-                // @ts-ignore
-                timestamp: new Date(fgObj[0]).toLocaleDateString("en-us").replaceAll("/", "-")
-              };
-              console.log("-=-=-=-=");
-              console.log("not a consecutive date:", today);
-              console.log("previousdate was:", previousDate);
-              this._dataSvc.loadedFearIndexes.splice(index, 0, dummyObj);
-
-            }
-
+          if (matchedFearPoint) {
+            lastKnownFearPoint = matchedFearPoint;
+            alignedFearIndexes.push(matchedFearPoint);
+            return;
           }
 
-          // previousDate = new Date(fgObj.timestamp);
+          if (!lastKnownFearPoint) {
+            return;
+          }
 
-          // previousDate = new Date(this._dataSvc.loadedFearIndexes[index].timestamp);
-          // @ts-ignore
-          previousDate = new Date(this._dataSvc.loadedFearIndexes[index].timestamp.toString().replaceAll("-", "/"));
-
-          // previousDate = new Date(parseInt(dateStrArr[2], 10), parseInt(dateStrArr[0], 10), parseInt(dateStrArr[1], 10));
-          previousDate.setHours(0, 0, 0, 0);
+          alignedFearIndexes.push({
+            ...lastKnownFearPoint,
+            timestamp: `${coinDate.getUTCMonth() + 1}-${coinDate.getUTCDate()}-${coinDate.getUTCFullYear()}`
+          });
         });
+
+        this._dataSvc.loadedFearIndexes = alignedFearIndexes;
 
 
         /*this._dataSvc.loadedCoinPrices.forEach((fgObj: TimeStampAndNumber, index: number) => {
@@ -251,18 +229,19 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
                   this._dataSvc.loadedFearIndexes.splice(index, 0, dummyDataObj);*!/
 
                 });*/
-        console.log("na de modificatie", this._dataSvc.loadedFearIndexes);
+        console.log("fear indexes aligned", this._dataSvc.loadedFearIndexes.length, this._dataSvc.loadedCoinPrices.length);
 
         this._dataSvc.loadedCoinPrices.forEach((coinPriceItem: CryptoCompareApiDataPoint, index: number) => {
-          if (!this._dataSvc.loadedFearIndexes[index]) {
-            console.log("wat gebeurt er?");
+          const fearPoint = this._dataSvc.loadedFearIndexes[index];
+          if (!fearPoint) {
+            return;
           }
 
           // coinPriceItem.timeStamp = new Date(coinPriceItem.timeStamp).setTime(new Date(this._dataSvc.loadedFearIndexes[0].timestamp).getTime());
 
-          const date1: Date = new Date(this._dataSvc.loadedFearIndexes[index].timestamp);
+          const date1: Date = new Date(fearPoint.timestamp);
           date1.setHours(0, 0, 0, 0);
-          const date2: Date = new Date(coinPriceItem[0]);
+          const date2: Date = new Date(coinPriceItem.time * 1000);
           date2.setHours(0, 0, 0, 0);
 
           // console.log("-=-");
@@ -282,12 +261,9 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
           }
 
-          if (!this._dataSvc.loadedFearIndexes[index]) {
-            console.log("wow", coinPriceItem);
-          }
           this._dataSvc.loadedCompleteData.push({
-            fngValueName: this._dataSvc.loadedFearIndexes[index].value_classification,
-            fngValue: this._dataSvc.loadedFearIndexes[index].value,
+            fngValueName: fearPoint.value_classification,
+            fngValue: fearPoint.value,
             btcPrice: coinPriceItem.close,
             date: new Date(coinPriceItem.time * 1000)
           });
@@ -316,13 +292,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public handleAmountOfDaysToSHowSelectionChange(event: MatOptionSelectionChange): void {
     if (event.isUserInput) {
-      const today: Date = new Date();
-      const determinedStartDate: Date = addDays(today, -(event.source.value + 1));
-
-      const startAndEndDate: StartAndEndDate = {
-        startDate: determinedStartDate,
-        endDate: today,
-      };
+      const startAndEndDate: StartAndEndDate = getPastDaysRange(event.source.value);
 
       this.apiConnector.loadCollectionWithParams(startAndEndDate);
     }

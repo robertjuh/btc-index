@@ -4,6 +4,7 @@ import "chartjs-adapter-luxon";
 import {ScriptableLineSegmentContext} from "chart.js";
 import {FearGreedDataPoint} from "../models/interface/fear-greed-data-point.interface";
 import {FearAndGreedName} from "../models/enum/fear-and-greed-name.enum";
+import {StartAndEndDate} from "../models/interface/start-and-end-date.interface";
 
 // Adapted from http://indiegamr.com/generate-repeatable-random-numbers-in-js/
 let _seed = Date.now();
@@ -219,6 +220,15 @@ export function addDays(date: Date, days: number): Date {
   const result: Date = new Date(date);
   result.setDate(result.getDate() + days);
   return result;
+}
+
+export function getPastDaysRange(amountOfDays: number, endDate: Date = new Date()): StartAndEndDate {
+  const normalizedEndDate: Date = new Date(endDate);
+
+  return {
+    startDate: addDays(normalizedEndDate, -amountOfDays),
+    endDate: normalizedEndDate
+  };
 }
 
 export function dayCheck(daysArray: Date[]): boolean {

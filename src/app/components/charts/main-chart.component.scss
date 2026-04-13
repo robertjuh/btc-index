@@ -8,35 +8,52 @@
 
   .main-chart-container {
     background: $dark-background;
-    // background: white;
-    // padding: 20px;
-    padding: 10px;
+    padding: 14px;
     border-radius: 10px;
 
     .chart-toolbar {
-      justify-content: space-between;
-      height: 75px;
       display: flex;
-      flex-direction: column;
-      /*justify-content: center;
-      flex-flow: wrap;*/
-      button {
-        margin: 2px;
-        @include dark-button-style;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: #181818;
+      border: 1px solid #292929;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
 
-/*        border-color: #6613d0;
-        margin-left: 2px;
-        margin-right: 2px;
-        margin-bottom: 2px;
-        background: #490d95;
-        color: whitesmoke;*/
+      .toolbar-left,
+      .toolbar-center,
+      .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .toolbar-left {
+        flex: 0 0 auto;
+      }
+
+      .toolbar-center {
+        flex: 1 1 auto;
+        justify-content: center;
+        min-width: 260px;
+      }
+
+      .toolbar-right {
+        flex: 0 0 auto;
+      }
+
+      .toolbar-label {
+        color: #b3b3b3;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
       }
     }
 
 
-    // nieuwe toggle button style
     mat-button-toggle-group {
-      // background: transparent;
       height: 32px;
       background: #212121;
       align-items: center;
@@ -51,7 +68,6 @@
         }
 
         &.mat-button-toggle-checked {
-          // background: #490d9578;
           background: #490d9578;
         }
 
@@ -72,6 +88,20 @@
         color: whitesmoke;
       }
     }
+
+    .date-range-field {
+      width: min(360px, 100%);
+      margin: 0;
+    }
+
+    ::ng-deep .date-range-field .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+
+    ::ng-deep .date-range-field .mdc-text-field--filled {
+      border-radius: 8px;
+      background: #ffffff;
+    }
   }
 
   .chart-frame {
@@ -87,7 +117,19 @@
 
   @media screen and (max-width: $xs-width) {
     .main-chart-container {
-      padding: 0px;
+      padding: 8px 0px 0px 0px;
+    }
+
+    .chart-toolbar {
+      flex-direction: column;
+      align-items: stretch !important;
+
+      .toolbar-left,
+      .toolbar-center,
+      .toolbar-right {
+        width: 100%;
+        justify-content: flex-start;
+      }
     }
 
     .chart-frame {

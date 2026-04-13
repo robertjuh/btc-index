@@ -147,9 +147,9 @@ export class ApiConnectorService {
       this.dataService.amountOfDaysExceedsNinety = false;
     }*/
 
-    // Nu reken je het verschil tussen de stardate en vandaag, en dan pak je de eerste diffDays records
-    const diffTimeBetweenStartAndToday: number = getDayDiff(new Date(stardAndEndDate.startDate), new Date());
-    // const daysUntillNow: number = Math.ceil(diffTimeBetweenStartAndToday / (1000 * 60 * 60 * 24));
+    // Calculate requested range from selected start to selected end date.
+    const diffTimeBetweenStartAndEnd: number = getDayDiff(new Date(stardAndEndDate.startDate), new Date(stardAndEndDate.endDate));
+    // const daysUntillNow: number = Math.ceil(diffTimeBetweenStartAndEnd / (1000 * 60 * 60 * 24));
 
 
     // Default query
@@ -157,23 +157,25 @@ export class ApiConnectorService {
 
 
     //// const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${Math.floor(unixTimeStart)}&to=${Math.floor(unixTimeEnd)}`;
-    // const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=${diffTimeBetweenStartAndToday}`;
+    // const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=${diffTimeBetweenStartAndEnd}`;
     // const coinGeckoUrl: string = `https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=max`;
-    // const cryptoCompareURL: string = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=USD&limit=${diffTimeBetweenStartAndToday - 1}&api_key=6fd8a5dae4abf92f08692a143f747514be4db1a8d0f56a9160219167b762be3f`;
+    // const cryptoCompareURL: string = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=USD&limit=${diffTimeBetweenStartAndEnd - 1}&api_key=6fd8a5dae4abf92f08692a143f747514be4db1a8d0f56a9160219167b762be3f`;
 
 
-    // const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=us`;
-    // const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndToday}&date_format=nl`;
+    // const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndEnd}&date_format=us`;
+    // const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndEnd}&date_format=nl`;
 
-    const MAX_DAYS = 2000; // cryptocompare hard cap
-    const wasCapped = diffTimeBetweenStartAndToday > MAX_DAYS;
-    const cappedDays = Math.min(diffTimeBetweenStartAndToday, MAX_DAYS);
-    const cryptoCompareURL = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=USD&limit=${cappedDays - 1}&api_key=6fd8a5dae4abf92f08692a143f747514be4db1a8d0f56a9160219167b762be3f`;
-    const fearGreadURL = `https://api.alternative.me/fng/?limit=${cappedDays}&date_format=us`;
+    const MAX_POINTS = 2000; // hard cap for cryptocompare api returned datapoints
+    const requestedPoints = diffTimeBetweenStartAndEnd + 1; // inclusive range
+    const wasCapped = requestedPoints > MAX_POINTS;
+    const cappedPoints = Math.min(requestedPoints, MAX_POINTS);
+    const cryptoCompareURL = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=USD&limit=${cappedPoints - 1}&toTs=${Math.floor(unixTimeEnd)}&api_key=6fd8a5dae4abf92f08692a143f747514be4db1a8d0f56a9160219167b762be3f`;
+    // Alternative.me does not support end-date anchoring. Fetch full history and align locally by date.
+    const fearGreadURL = "https://api.alternative.me/fng/?limit=0&date_format=us";
 
 
     if (wasCapped) {
-      this._snackBar.open('Showing maximum of 2000 days (API limit)', 'OK', {
+      this._snackBar.open('Showing maximum of 2000 datapoints (API limit)', 'OK', {
         duration: 4000,
         horizontalPosition: 'center',
         verticalPosition: 'bottom',

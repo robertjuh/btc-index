@@ -40,6 +40,11 @@
             "ngswConfigPath": "ngsw-config.json"
           },
           "configurations": {
+            "development": {
+              "sourceMap": true,
+              "optimization": false,
+              "buildOptimizer": false
+            },
             "production": {
               "fileReplacements": [
                 {
@@ -49,7 +54,7 @@
               ],
               "optimization": true,
               "outputHashing": "all",
-              "sourceMap": false,
+              "sourceMap": true,
               "namedChunks": false,
               "extractLicenses": true,
               "vendorChunk": false,
@@ -69,21 +74,23 @@
             }
           }
         },
-        "serve": {
+       "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {
-            "browserTarget": "btc-index:build"
-          },
+          "defaultConfiguration": "development",
           "configurations": {
+            "development": {
+              "buildTarget": "btc-index:build:development",
+              "liveReload": false
+            },
             "production": {
-              "browserTarget": "btc-index:build:production"
+              "buildTarget": "btc-index:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "btc-index:build"
+            "buildTarget": "btc-index:build"
           }
         },
         "test": {
@@ -133,5 +140,4 @@
       }
     }
   },
-  "defaultProject": "btc-index"
 }
