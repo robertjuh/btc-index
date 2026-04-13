@@ -1,6 +1,254 @@
+@import "src/app/style/mixins/mixins.mixins";
+
 :host {
-  margin-top: 20px;
-  align-self: center;
+  display: block;
+  margin-top: 12px;
 
+  // ── FORM ──────────────────────────────────────────
+  .strategy-form {
+    margin: 0 12px 12px;
+    padding: 14px 16px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.07);
 
+    // Make all outline fields smaller/denser
+    mat-form-field {
+      &.full-width { width: 100%; }
+
+      // Tighten vertical rhythm inside outline fields
+      .mat-mdc-form-field-infix {
+        padding-top: 10px !important;
+        padding-bottom: 6px !important;
+        min-height: unset !important;
+      }
+
+      // Light text on dark background
+      input.mat-mdc-input-element,
+      .mat-mdc-select-value-text,
+      .mat-mdc-select-placeholder {
+        color: whitesmoke !important;
+      }
+
+      .mat-mdc-floating-label,
+      .mdc-floating-label,
+      .mdc-floating-label--float-above,
+      label,
+      label span {
+        color: rgba(255, 255, 255, 0.75) !important;
+      }
+
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: rgba(255, 255, 255, 0.25) !important;
+      }
+
+      &:hover {
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing {
+          border-color: rgba(255, 255, 255, 0.5) !important;
+        }
+      }
+
+      .mat-mdc-form-field-icon-prefix,
+      .mat-mdc-form-field-icon-suffix,
+      [matPrefix], [matSuffix] {
+        color: rgba(255, 255, 255, 0.5);
+      }
+    }
+
+    // Two-column buy / sell layout
+    .rule-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+
+      @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .rule-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px 12px 8px;
+      border-radius: 8px;
+    }
+
+    .buy-col  { background: rgba(76, 175, 80, 0.08);  border: 1px solid rgba(76, 175, 80, 0.25); }
+    .sell-col { background: rgba(244, 67, 54, 0.08);  border: 1px solid rgba(244, 67, 54, 0.25); }
+
+    .col-title {
+      font-size: 0.72em;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+
+    .buy-title  { color: #4caf50; }
+    .sell-title { color: #ef5350; }
+
+    .run-btn {
+      @include dark-button-style;
+      width: 100%;
+      margin-top: 12px;
+    }
+  }
+
+  // ── RESULTS ───────────────────────────────────────
+  .results-section {
+    margin: 0 12px 24px;
+  }
+
+  .section-title {
+    margin: 14px 0 6px;
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .no-trades {
+    padding: 20px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(255, 255, 255, 0.45);
+    text-align: center;
+    font-size: 0.9em;
+  }
+
+  // ── STATS GRID ────────────────────────────────────
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .stat-card {
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    &.highlight {
+      background: rgba(102, 19, 208, 0.35);
+      border: 1px solid rgba(102, 19, 208, 0.55);
+    }
+
+    &.positive {
+      background: rgba(0, 180, 100, 0.12);
+      border: 1px solid rgba(0, 180, 100, 0.35);
+    }
+
+    &.negative {
+      background: rgba(220, 50, 50, 0.12);
+      border: 1px solid rgba(220, 50, 50, 0.35);
+    }
+  }
+
+  .stat-label {
+    font-size: 0.68em;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-value {
+    font-size: 1.05em;
+    font-weight: 600;
+    color: whitesmoke;
+  }
+
+  .stat-sub {
+    font-size: 0.82em;
+    margin-top: 1px;
+
+    &.positive { color: #4caf50; }
+    &.negative { color: #f44336; }
+  }
+
+  // ── TRADE LOG ─────────────────────────────────────
+  .trade-log {
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 0.8em;
+    max-height: 340px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .trade-log-header {
+    display: grid;
+    grid-template-columns: 80px 46px 36px 80px 80px 80px;
+    padding: 7px 10px;
+    background: #6613d0;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.76em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    position: sticky;
+    top: 0;
+  }
+
+  .trade-row {
+    display: grid;
+    grid-template-columns: 80px 46px 36px 80px 80px 80px;
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.82);
+
+    &:last-child { border-bottom: none; }
+    &.buy-row  { border-left: 2px solid #4caf50; }
+    &.sell-row { border-left: 2px solid #f44336; }
+  }
+
+  .action-badge {
+    font-weight: 700;
+    font-size: 0.84em;
+
+    &.buy-badge  { color: #4caf50; }
+    &.sell-badge { color: #ef5350; }
+  }
+}
+
+// Form field labels and select value — MDC encapsulation requires ::ng-deep
+::ng-deep strategy-screen {
+  .mdc-floating-label,
+  .mdc-floating-label--float-above,
+  .mat-mdc-floating-label {
+    color: rgba(255, 255, 255, 0.75) !important;
+
+    span { color: rgba(255, 255, 255, 0.75) !important; }
+  }
+
+  .mat-mdc-select-value,
+  .mat-mdc-select-value-text,
+  .mat-mdc-select-min-line {
+    color: whitesmoke !important;
+  }
+}
+
+// Mat-select overlay panel lives outside :host so needs ::ng-deep
+::ng-deep .mat-mdc-select-panel {
+  background: #1e1e2e !important;
+
+  .mat-mdc-option {
+    color: whitesmoke !important;
+
+    &:hover:not(.mdc-list-item--disabled),
+    &.mat-mdc-option-active {
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    &.mdc-list-item--selected:not(.mat-mdc-option-multiple) {
+      background: rgba(102, 19, 208, 0.35) !important;
+    }
+  }
 }
