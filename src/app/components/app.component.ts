@@ -3,6 +3,7 @@ import {ApiConnectorService} from "../services/api-connector.service";
 import {StateDataService} from "../services/state-data.service";
 import {MatDialog} from "@angular/material/dialog";
 import {Subscription} from "rxjs";
+import {filter} from "rxjs/operators";
 import {CoingeckoApiData} from "../models/interface/coingecko-api-data.interface";
 import {TimeStampAndNumber} from "../models/interface/timestamp-and-number.interface";
 import {getColorForIndex, getPastDaysRange} from "../services/utils";
@@ -13,6 +14,7 @@ import {Router} from "@angular/router";
 import {FearGreedDataPoint} from "../models/interface/fear-greed-data-point.interface";
 import {CryptoCompareApiData} from "../models/interface/cryptoCompare-api-data.interface";
 import {CryptoCompareApiDataPoint} from "../models/interface/cryptoCompare-api-data-point.interface";
+import {SwUpdate, VersionReadyEvent} from "@angular/service-worker";
 
 /*<button class="close-button" (click)="drawer.toggle()" mat-raised-button>
 Close
@@ -119,6 +121,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     private _dialogRef: MatDialog,
     private _dataSvc: StateDataService,
     private _titleService: Title,
+    private _swUpdate: SwUpdate,
     /*
         private _router: Router
     */
@@ -127,8 +130,26 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this._loadCollection();
+    this._handleSwUpdates(); // check service worker for mobile in case we get cache problem
+  }
 
-    // this._loadTitleIndexNr();
+  private _handleSwUpdates(): void {
+    if (!this._swUpdate.isEnabled) {
+      return;
+    }
+
+    this._swUpdate.versionUpdates.pipe(
+      filter((evt): evt is VersionReadyEvent => evt.type === "VERSION_READY")
+    ).subscribe(() => {
+      const SW_RELOAD_KEY = "sw_last_reload";
+      const lastReload = localStorage.getItem(SW_RELOAD_KEY);
+      const now = Date.now();
+      // Only reload if we haven't reloaded due to a SW update in the last 60 seconds
+      if (!lastReload || now - parseInt(lastReload, 10) > 60_000) {
+        localStorage.setItem(SW_RELOAD_KEY, String(now));
+        location.reload();
+      }
+    });
   }
 
   ngAfterViewInit(): void {
