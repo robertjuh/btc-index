@@ -60,14 +60,17 @@ Chart.register(...registerables);
                 <mat-date-range-picker #picker></mat-date-range-picker>
           </mat-form-field>
         </div>
-        
+
         <div class="toolbar-right">
+          <mat-button-toggle (click)="toggleRsi()" [checked]="showRsi">
+            <span>RSI</span>
+          </mat-button-toggle>
           <mat-button-toggle (click)="toggleLogScale()" [checked]="isLogScale">
             <span>Log scale</span>
           </mat-button-toggle>
         </div>
       </div>
-      
+
 
     </div>
   `,
@@ -83,6 +86,7 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
   public mainChart: Chart;
 
   public isLogScale: boolean = false;
+  public showRsi: boolean = false;
   public selectedRangePreset: string = "1Y";
 
   public minPickableDate: Date;
@@ -103,9 +107,7 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
         amountOfXLabels = 8;
       }
 
-
       this.mainChart.config.options.scales.x.ticks.maxTicksLimit = amountOfXLabels;
-
       this.mainChart.update();
     }
   }
@@ -120,57 +122,58 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
   private _defaultChartOptions: ChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    // maintainAspectRatio: true,
     scales: {
       x: {
         ticks: {
           maxTicksLimit: 6,
           maxRotation: 0,
           minRotation: 0,
-          major: {
-            enabled: true
-          },
-          // color: (context) => context.tick && context.tick.major && "#f1f1f1",
+          major: { enabled: true },
         }
       },
       y: {
         type: "linear",
         display: true,
+      },
+      y1: {
+        type: "linear",
+        display: false,
+        position: "right",
+        min: 0,
+        max: 100,
+        grid: { drawOnChartArea: false },
+        ticks: {
+          color: "rgba(255, 152, 0, 0.7)",
+          stepSize: 10,
+        }
       }
     },
     plugins: {
       tooltip: {
         callbacks: {
-          /*getToolTipText*/
           footer: (tooltipItems): string => {
-            let sum = 0;
-
-            tooltipItems.forEach((tooltipItem) => {
-              return sum += tooltipItem.parsed.y;
-            });
-            return "BTC: $" + Math.floor(this.dataService.loadedCompleteData[tooltipItems[0].dataIndex].btcPrice);
+            const btcItem = tooltipItems.find(t => t.datasetIndex === 0);
+            if (!btcItem) return "";
+            return "BTC: $" + Math.floor(this._getDisplayData()[btcItem.dataIndex]?.btcPrice ?? 0);
           },
           label: (tooltipItem): string => {
-            // return "Fear/Greed index value: " + this.dataService.loadedFearIndexes[tooltipItem.dataIndex].value;
-            return "Fear/Greed index value: " + this.dataService.loadedCompleteData[tooltipItem.dataIndex].fngValue;
+            if (tooltipItem.datasetIndex === 0) {
+              return "Fear/Greed: " + (this._getDisplayData()[tooltipItem.dataIndex]?.fngValue ?? "");
+            }
+            if (tooltipItem.dataset.label === "RSI (14)") {
+              return "RSI (14): " + tooltipItem.parsed.y;
+            }
+            return "";
           },
-          /* label(tooltipItem: TooltipItem<any>): string | string[] {
-             return "LABELTJE";
-           }*/
         }
       }
     },
     onResize(chart: any, size: { width: number; height: number }): void {
       if (window.visualViewport.height < 600) {
-        // if (true) {
-        // chart.canvas.parentNode.style.height =  (window.visualViewport.height - 136) + "px"; // eerste button rij net zichtbaar op kleine schermen
         chart.canvas.parentNode.style.height = (window.visualViewport.height - 136) + "px";
       } else {
         chart.canvas.parentNode.style.height = (window.visualViewport.height - 194) + "px";
-
-        // chart.canvas.parentNode.style.height = "500px";
       }
-      // chart.canvas.parentNode.style.width = size.width + "px";
     },
     resizeDelay: 250
   };
@@ -187,13 +190,9 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
     public apiConnectorService: ApiConnectorService,
     private _titleService: Title
   ) {
-    console.log("Constructor");
     this.minPickableDate = new Date(2018, 1, 3);
     this.maxPickableDate = new Date();
-
     this._getYTD();
-
-
   }
 
   ngAfterViewInit(): void {
@@ -217,13 +216,10 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
         this._createChartComponentWithData();
       }
     }
-
-
   }
 
   ngOnDestroy(): void {
     // this.mainChart?.destroy();
-    // this.dataService.everyThingLoaded.unsubscribe();
   }
 
   public toggleLogScale(): void {
@@ -234,87 +230,72 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
     this.mainChart.update();
   }
 
+  public toggleRsi(): void {
+    this.showRsi = !this.showRsi;
+    if (!this.mainChart) return;
 
-  // private _createChartComponentWithData(fearGreedIndexData: FearGreedDataPoint[], coinGeckoPriceData: TimeStampAndNumber[]): void {
+    if (this.showRsi) {
+      const { displayData, allPrices } = this._getDisplayAndFullPrices();
+      this.mainChart.data.datasets.push(...this._buildRsiDatasets(allPrices, displayData.length));
+      this.mainChart.config.options.scales["y1"].display = true;
+    } else {
+      this.mainChart.data.datasets = this.mainChart.data.datasets.filter(
+        d => !["RSI (14)", "RSI 70", "RSI 30"].includes(d.label)
+      );
+      this.mainChart.config.options.scales["y1"].display = false;
+    }
+    this.mainChart.update();
+  }
+
   private _createChartComponentWithData(): void {
+    const { displayData, allPrices } = this._getDisplayAndFullPrices();
 
     const priceDataSeries: number[] = [];
-    // const labels: string[] = [];
     const labels: any[] = [];
     const backgroundColors: string[] = [];
-    // const backgroundGradientCOlors: string[] = [];
 
-    const segments: string[] = [];
-
-
-    // gradient deze werkt goed!
-    // const backgroundGradient: CanvasGradient = this.ctx.createLinearGradient(1, 0, 200, 600);
     const backgroundGradient: CanvasGradient = this.ctx.createLinearGradient(300, 110, 200, 600);
-
-    /*backgroundGradient.addColorStop(0, "rgba(73,13,149,0.99)");
-    backgroundGradient.addColorStop(1, "rgba(255,0,0,0.66)");*/
-
-    // deze is mooi op moble
     backgroundGradient.addColorStop(0, "rgba(73,13,149,0.27)");
     backgroundGradient.addColorStop(1, "rgba(16,16,16,0.08)");
 
-    /*    backgroundGradient.addColorStop(0, "rgba(0,0,0,0.06)");
-        backgroundGradient.addColorStop(1, "rgba(0,0,0,0)");*/
-
-
-    // this.dataService.loadedCoinPrices.forEach((priceDateDataPoint: TimeStampAndNumber, index: number) => {
-    this.dataService.loadedCompleteData.forEach((completeDataObject: CompleteDataObject, index: number) => {
+    displayData.forEach((completeDataObject: CompleteDataObject) => {
       priceDataSeries.push(Math.floor(completeDataObject.btcPrice));
       const newDate: Date = new Date(completeDataObject.date);
-
-      // const newDate: Date = new Date(priceDateDataPoint[0]);
-
-      // backgroundColors.push(getColorForIndex(this.dataService.loadedFearIndexes[index].value_classification));
-      backgroundColors.push(getColorForIndex(this.dataService.loadedCompleteData[index].fngValueName));
-
-      // labels.push((newDate.getDate()) + " - " + (newDate.getMonth() + 1) + " - " + newDate.getFullYear());
+      backgroundColors.push(getColorForIndex(completeDataObject.fngValueName));
       labels.push((newDate.getDate()) + "-" + (newDate.getMonth() + 1) + "-" + newDate.getFullYear());
-      // labels.push(newDate);
     });
 
-    // this.mainChart?.destroy();
+    const btcDataset: any = {
+      label: "BTC price",
+      backgroundColor: backgroundGradient,
+      data: priceDataSeries,
+      fill: true,
+      borderColor: "black",
+      segment: {
+        borderColor: (ctx: ScriptableLineSegmentContext) =>
+          getColorForSegment(displayData[ctx.p1DataIndex].fngValueName),
+      },
+      tension: 0.3,
+      pointBorderColor: backgroundColors,
+      pointBackgroundColor: backgroundColors,
+      pointHitRadius: 20,
+      pointRadius: 2,
+    };
+
+    const datasets: any[] = [btcDataset];
+    if (this.showRsi) {
+      datasets.push(...this._buildRsiDatasets(allPrices, displayData.length));
+    }
 
     this.mainChart = new Chart(this.ctx, {
       options: this._defaultChartOptions,
       type: "line",
-      data: {
-        labels,
-        datasets: [{
-          label: "BTC price",
-
-          // backgroundColor: gradientTest,  // deze werkt goed!
-          backgroundColor: backgroundGradient,  // deze werkt goed!
-          // backgroundColor: backgroundColors,
-          data: priceDataSeries,
-          // data: data2,
-          fill: true,
-          // borderColor: "transparent", // Invisible line :D
-          borderColor: "black",
-          segment: {
-            borderColor: (ctx: ScriptableLineSegmentContext) => {
-              // return getColorForSegment(ctx, priceDataSeries, this.dataService.loadedFearIndexes[ctx.p1DataIndex].value_classification);
-              return getColorForSegment(this.dataService.loadedCompleteData[ctx.p1DataIndex].fngValueName);
-              /*return !!this.dataService.loadedCompleteData[ctx.p1DataIndex] ? getColorForSegment(ctx, priceDataSeries,
-                this.dataService.loadedCompleteData[ctx.p1DataIndex].fngValueName) : undefined;*/
-            },
-            // borderDash: ctx => skipped(ctx, [6, 6]),
-          },
-          tension: 0.3,
-          pointBorderColor: backgroundColors,
-          pointBackgroundColor: backgroundColors,
-          pointHitRadius: 20,
-          pointRadius: 2
-          /*          segment: {
-                      borderColor: this.ctx => fear(this.ctx, value)
-                    }*/
-        }]
-      }
+      data: { labels, datasets }
     });
+
+    if (this.showRsi) {
+      this.mainChart.config.options.scales["y1"].display = true;
+    }
 
     this.screenWidth = window.innerWidth;
   }
@@ -323,37 +304,26 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
     this.selectedStartDate = null;
     this.selectedEndDate = null;
     const startAndEndDate: StartAndEndDate = getPastDaysRange(amountOfDays);
-
     this.apiConnectorService.loadCollectionWithParams(startAndEndDate);
-
   }
 
   public handleDayAmountSelectionAll(): void {
     this.selectedStartDate = null;
     this.selectedEndDate = null;
-    const start: Date = new Date(2018, 1, 1);
-    const end: Date = new Date();
-
     const startAndEndDate: StartAndEndDate = {
-      startDate: start,
-      endDate: end,
+      startDate: new Date(2018, 1, 1),
+      endDate: new Date(),
     };
-
     this.apiConnectorService.loadCollectionWithParams(startAndEndDate);
   }
 
   public handleDayAmountSelectionYTD(): void {
     this.selectedStartDate = null;
     this.selectedEndDate = null;
-    const currentYearTillNow: Date = new Date(new Date().getFullYear(), 0, 1);
-
-    const end: Date = new Date();
-
     const startAndEndDate: StartAndEndDate = {
-      startDate: currentYearTillNow,
-      endDate: end,
+      startDate: new Date(new Date().getFullYear(), 0, 1),
+      endDate: new Date(),
     };
-
     this.apiConnectorService.loadCollectionWithParams(startAndEndDate);
   }
 
@@ -369,85 +339,149 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
     this._loadCustomRangeIfComplete();
   }
 
-  // returns amount of days from this year untill now
   private _getYTD(): void {
     const now: Date = new Date();
     const currentYearTillNow: Date = new Date(new Date().getFullYear(), 0, 1);
-
-    // Dit rekent het verschil tussen de daterange uit
     const diffTime: number = Math.abs(now.getTime() - currentYearTillNow.getTime());
-    const diffDays: number = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-
-    console.log("diffDays", diffDays);
-    this._ytdDays = diffDays;
+    this._ytdDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   }
 
   private _updateChartData(): void {
-    console.log("_updateChartData", this.mainChart);
+    const { displayData, allPrices } = this._getDisplayAndFullPrices();
 
     const priceDataSeries: number[] = [];
     const labels: any[] = [];
     const backgroundColors: string[] = [];
 
-    const segments: string[] = [];
-
-
     const backgroundGradient: CanvasGradient = this.ctx.createLinearGradient(300, 110, 200, 600);
-
-    // deze is mooi op moble
     backgroundGradient.addColorStop(0, "rgba(73,13,149,0.27)");
     backgroundGradient.addColorStop(1, "rgba(16,16,16,0.08)");
 
-
-    this.dataService.loadedCompleteData.forEach((completeDataObject: CompleteDataObject, index: number) => {
+    displayData.forEach((completeDataObject: CompleteDataObject) => {
       priceDataSeries.push(Math.floor(completeDataObject.btcPrice));
       const newDate: Date = new Date(completeDataObject.date);
-      backgroundColors.push(getColorForIndex(this.dataService.loadedCompleteData[index].fngValueName));
-
+      backgroundColors.push(getColorForIndex(completeDataObject.fngValueName));
       labels.push((newDate.getDate()) + "-" + (newDate.getMonth() + 1) + "-" + newDate.getFullYear());
     });
 
-    /*this.mainChart.config.data.labels = labels;
-    this.mainChart.config.data.datasets[0].data = priceDataSeries;
-    // @ts-ignore
-    this.mainChart.config.data.datasets[0].pointBorderColor = backgroundColors;
-    // @ts-ignore
-    this.mainChart.config.data.datasets[0].pointBackgroundColor = backgroundColors;*/
-    this.mainChart.data = {
-      labels,
-      datasets: [{
-        label: "BTC price",
-
-        // backgroundColor: gradientTest,  // deze werkt goed!
-        backgroundColor: backgroundGradient,  // deze werkt goed!
-        // backgroundColor: backgroundColors,
-        data: priceDataSeries,
-        // data: data2,
-        fill: true,
-        // borderColor: "transparent", // Invisible line :D
-        borderColor: "black",
-        segment: {
-          borderColor: (ctx: ScriptableLineSegmentContext) => {
-            // return getColorForSegment(ctx, priceDataSeries, this.dataService.loadedFearIndexes[ctx.p1DataIndex].value_classification);
-            return getColorForSegment(this.dataService.loadedCompleteData[ctx.p1DataIndex].fngValueName);
-            /*return !!this.dataService.loadedCompleteData[ctx.p1DataIndex] ? getColorForSegment(ctx, priceDataSeries,
-              this.dataService.loadedCompleteData[ctx.p1DataIndex].fngValueName) : undefined;*/
-          },
-          // borderDash: ctx => skipped(ctx, [6, 6]),
-        },
-        tension: 0.3,
-        pointBorderColor: backgroundColors,
-        pointBackgroundColor: backgroundColors,
-        pointHitRadius: 20,
-        pointRadius: 2
-        /*          segment: {
-                    borderColor: this.ctx => fear(this.ctx, value)
-                  }*/
-      }]
+    const btcDataset: any = {
+      label: "BTC price",
+      backgroundColor: backgroundGradient,
+      data: priceDataSeries,
+      fill: true,
+      borderColor: "black",
+      segment: {
+        borderColor: (ctx: ScriptableLineSegmentContext) =>
+          getColorForSegment(displayData[ctx.p1DataIndex].fngValueName),
+      },
+      tension: 0.3,
+      pointBorderColor: backgroundColors,
+      pointBackgroundColor: backgroundColors,
+      pointHitRadius: 20,
+      pointRadius: 2,
     };
 
+    const datasets: any[] = [btcDataset];
+    if (this.showRsi) {
+      datasets.push(...this._buildRsiDatasets(allPrices, displayData.length));
+    }
+
+    this.mainChart.data = { labels, datasets };
+    this.mainChart.config.options.scales["y1"].display = this.showRsi;
     this.mainChart.update();
+  }
+
+  private _getDisplayData(): CompleteDataObject[] {
+    return this._getDisplayAndFullPrices().displayData;
+  }
+
+  // Returns display-range data (sliced from displayStartDate) and full price array for RSI warmup
+  private _getDisplayAndFullPrices(): { displayData: CompleteDataObject[]; allPrices: number[] } {
+    const all = this.dataService.loadedCompleteData;
+    const allPrices = all.map(d => d.btcPrice);
+    const displayStart = this.dataService.displayStartDate;
+
+    if (!displayStart) {
+      return { displayData: all, allPrices };
+    }
+
+    const startTime = displayStart.getTime();
+    const firstDisplayIdx = all.findIndex(d => new Date(d.date).getTime() >= startTime);
+    const displayData = firstDisplayIdx >= 0 ? all.slice(firstDisplayIdx) : all;
+
+    return { displayData, allPrices };
+  }
+
+  private _calcRSI(prices: number[], period = 14): (number | null)[] {
+    if (prices.length < period + 1) return prices.map(() => null);
+
+    const result: (number | null)[] = new Array(period).fill(null);
+
+    let avgGain = 0;
+    let avgLoss = 0;
+
+    for (let i = 1; i <= period; i++) {
+      const change = prices[i] - prices[i - 1];
+      if (change > 0) avgGain += change;
+      else avgLoss += Math.abs(change);
+    }
+    avgGain /= period;
+    avgLoss /= period;
+
+    const firstRS = avgLoss === 0 ? Infinity : avgGain / avgLoss;
+    result.push(parseFloat((100 - 100 / (1 + firstRS)).toFixed(2)));
+
+    for (let i = period + 1; i < prices.length; i++) {
+      const change = prices[i] - prices[i - 1];
+      const gain = change > 0 ? change : 0;
+      const loss = change < 0 ? Math.abs(change) : 0;
+      avgGain = (avgGain * (period - 1) + gain) / period;
+      avgLoss = (avgLoss * (period - 1) + loss) / period;
+      const rs = avgLoss === 0 ? Infinity : avgGain / avgLoss;
+      result.push(parseFloat((100 - 100 / (1 + rs)).toFixed(2)));
+    }
+
+    return result;
+  }
+
+  private _buildRsiDatasets(allPrices: number[], displayLength: number): any[] {
+    // Calculate RSI on the full array (includes warmup), then slice to display range
+    const fullRsi = this._calcRSI(allPrices);
+    const rsiData = fullRsi.slice(allPrices.length - displayLength);
+    const len = displayLength;
+    const sharedOpts = {
+      yAxisID: "y1",
+      fill: false,
+      pointRadius: 0,
+      pointHitRadius: 0,
+      tension: 0.3,
+      borderWidth: 1,
+    };
+
+    return [
+      {
+        ...sharedOpts,
+        label: "RSI (14)",
+        data: rsiData,
+        borderColor: "rgba(255, 152, 0, 0.9)",
+        borderWidth: 1.5,
+        pointHitRadius: 10,
+      },
+      {
+        ...sharedOpts,
+        label: "RSI 70",
+        data: new Array(len).fill(70),
+        borderColor: "rgba(244, 67, 54, 0.35)",
+        borderDash: [5, 4],
+      },
+      {
+        ...sharedOpts,
+        label: "RSI 30",
+        data: new Array(len).fill(30),
+        borderColor: "rgba(76, 175, 80, 0.35)",
+        borderDash: [5, 4],
+      },
+    ];
   }
 
   private _createXaXis(): void {
@@ -458,11 +492,9 @@ export class MainChartComponent implements AfterViewInit, OnDestroy {
     if (!this.selectedStartDate || !this.selectedEndDate) {
       return;
     }
-
     this.apiConnectorService.loadCollectionWithParams({
       startDate: this.selectedStartDate,
       endDate: this.selectedEndDate
     });
   }
-
 }

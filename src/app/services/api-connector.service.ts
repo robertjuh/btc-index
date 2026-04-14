@@ -132,9 +132,15 @@ export class ApiConnectorService {
   }
 
   public loadCollectionWithParams(stardAndEndDate: StartAndEndDate): void {
-    // const unixTimeStart: number = new Date(stardAndEndDate.start).getTime() / 1000;
-    const unixTimeStart: number = new Date(stardAndEndDate.startDate).getTime() / 1000;
-    // const unixTimeStart: number = addDays(new Date(stardAndEndDate.startDate), 1).getTime() / 1000;
+    // Save the real display start so the chart can slice warmup data off later
+    this.dataService.displayStartDate = new Date(stardAndEndDate.startDate);
+
+    // Prepend 30 extra days so RSI has warmup data before the display range starts
+    const RSI_WARMUP_DAYS = 30;
+    const warmupStart = new Date(stardAndEndDate.startDate);
+    warmupStart.setDate(warmupStart.getDate() - RSI_WARMUP_DAYS);
+
+    const unixTimeStart: number = warmupStart.getTime() / 1000;
     const unixTimeEnd: number = new Date(stardAndEndDate.endDate).getTime() / 1000;
 
     // Dit rekent het verschil tussen de daterange uit
@@ -166,7 +172,7 @@ export class ApiConnectorService {
     // const fearGreadURL: string = `https://api.alternative.me/fng/?limit=${diffTimeBetweenStartAndEnd}&date_format=nl`;
 
     const MAX_POINTS = 2000; // hard cap for cryptocompare api returned datapoints
-    const requestedPoints = diffTimeBetweenStartAndEnd + 1; // inclusive range
+    const requestedPoints = diffTimeBetweenStartAndEnd + RSI_WARMUP_DAYS + 1; // inclusive range + warmup buffer
     const wasCapped = requestedPoints > MAX_POINTS;
     const cappedPoints = Math.min(requestedPoints, MAX_POINTS);
     const cryptoCompareURL = `https://min-api.cryptocompare.com/data/v2/histoday?fsym=BTC&tsym=USD&limit=${cappedPoints - 1}&toTs=${Math.floor(unixTimeEnd)}&api_key=6fd8a5dae4abf92f08692a143f747514be4db1a8d0f56a9160219167b762be3f`;

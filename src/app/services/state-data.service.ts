@@ -26,6 +26,7 @@ export class StateDataService {
   public loadedCoinPrices: CryptoCompareApiDataPoint[] = [];
 
   public loadedCompleteData: CompleteDataObject[] = [];
+  public displayStartDate: Date | null = null;
 
   public get lastFearIndex(): string {
     if (this.loadedCompleteData[0]) {
