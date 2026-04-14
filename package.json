@@ -6,6 +6,7 @@
     "start": "ng serve --no-live-reload",
     "start-server": "http-server -p 8080 -c-1 dist/btc-index",
     "build": "node --max-old-space-size=4096 ./node_modules/@angular/cli/bin/ng build --base-href /btc-index/",
+    "postbuild": "node scripts/fix-index-paths.js",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
